@@ -1,3 +1,5 @@
+require 'pry'
+
 module RbtcArbitrage
   class Trader
     include RbtcArbitrage::TraderHelpers::Notifier
@@ -35,8 +37,14 @@ module RbtcArbitrage
     end
 
     def trade
+      @profitable_trade = false
       fetch_prices
       log_info if options[:verbose]
+
+      #determine profitable trade
+      if @percent > options[:cutoff]
+        @profitable_trade = true
+      end
 
       if options[:live] && options[:cutoff] > @percent
         raise SecurityError, "Exiting because real profit (#{@percent.round(2)}%) is less than cutoff (#{options[:cutoff].round(2)}%)"
@@ -51,6 +59,10 @@ module RbtcArbitrage
       end
 
       self
+    end
+
+    def profitable_trade?
+      @profitable_trade == true
     end
 
     def trade_again
@@ -73,6 +85,14 @@ module RbtcArbitrage
       end
     end
 
+    def fetch_buyer_price
+      @buy_client.price(:buy)
+    end
+
+    def fetch_seller_price
+      @sell_client.price(:sell)
+    end
+
     def fetch_prices
       logger.info "Fetching exchange rates" if @options[:verbose]
       buyer[:price] = @buy_client.price(:buy)
@@ -85,6 +105,14 @@ module RbtcArbitrage
     def get_balance
       @seller[:btc], @seller[:usd] = @sell_client.balance
       @buyer[:btc], @buyer[:usd] = @buy_client.balance
+    end
+
+    def get_buyer_balance
+      btc_balance, usd_balance = @buy_client.balance
+    end
+
+    def get_seller_balance
+      btc_balance, usd_balance = @sell_client.balance
     end
 
     def validate_env

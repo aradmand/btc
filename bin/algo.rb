@@ -1,28 +1,47 @@
-require 'rbtc_arbitrage'
 require 'date'
+require 'pry'
+
+$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
+require 'rbtc_arbitrage'
 
 enabled = true
 MAX_PERCENT_PROFIT = 50
 MIN_PERCENT_PROFIT = 2
 
+def set_trading_parameters
+  @buyer = ENV['BTC_BUYER'].try(:to_sym) || :coinbase
+  @seller = ENV['BTC_SELLER'].try(:to_sym) || :bitstamp
+  @volume = 0.1
+end
+
+
 while enabled == true
 
   MAX_PERCENT_PROFIT.downto(MIN_PERCENT_PROFIT) do |percent|
+
     start_time = Time.now
     puts
     puts "#=================="
     puts "[Timestamp - #{start_time}]"
 
-    #rbtc_arbitrage command:
-    #rbtc --seller bitstamp --buyer coinbase --volume 0.5 --cutoff 3
+    set_trading_parameters
+    options = { buyer: @buyer, seller: @seller, volume: @volume}
+    rbtc_arbitrage = RbtcArbitrage::Trader.new(options)
 
-    # [ Balance on buyer (EXCHANGE_NAME) exchange: (in dollars) ]
+    puts "rbtc_arbitrage command:"
+    puts "`rbtc --seller #{@seller} --buyer #{@buyer} --volume #{@volume} --cutoff #{percent}`"
 
-    # [ Balance on sell (EXCHANGE_NAME) exchange: (in dollars) ]
+    btc_balance, usd_balance = rbtc_arbitrage.get_buyer_balance
+    puts "[ Balance on buyer (#{@buyer}) exchange: (#{usd_balance} in USD) (#{btc_balance} in BTC) ]"
 
-    # [ Ask on buyer (EXCHANGE_NAME) exchange: (in dollars) ]
+    btc_balance, usd_balance = rbtc_arbitrage.get_seller_balance
+    puts "[ Balance on seller (#{@seller}) exchange: (#{usd_balance} in USD) (#{btc_balance} in BTC) ]"
 
-    # [ Bid on sell (EXCHANGE_NAME) exchange: (in dollars) ]
+    buyer_price = rbtc_arbitrage.fetch_buyer_price
+    puts "[ Ask on buyer (#{@buyer}) exchange: (#{buyer_price} in dollars) ]"
+
+    seller_price = rbtc_arbitrage.fetch_seller_price
+    puts "[ Bid on sell (#{@seller}) exchange: (#{seller_price} in dollars) ]"
 
     # Fetching exchange rates
     # Coinbase (Ask): $363.18
@@ -37,9 +56,10 @@ while enabled == true
     puts "#=================="
     puts
 
-
   end
   break
 end
+
+
 
 
