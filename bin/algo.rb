@@ -28,8 +28,10 @@ while enabled == true
     options = { buyer: @buyer, seller: @seller, volume: @volume}
     rbtc_arbitrage = RbtcArbitrage::Trader.new(options)
 
+    command = "`rbtc --seller #{@seller} --buyer #{@buyer} --volume #{@volume} --cutoff #{percent}`"
+
     puts "rbtc_arbitrage command:"
-    puts "`rbtc --seller #{@seller} --buyer #{@buyer} --volume #{@volume} --cutoff #{percent}`"
+    puts command
 
     btc_balance, usd_balance = rbtc_arbitrage.get_buyer_balance
     puts "[ Balance on buyer (#{@buyer}) exchange: (#{usd_balance} in USD) (#{btc_balance} in BTC) ]"
@@ -56,6 +58,7 @@ while enabled == true
     puts "#=================="
     puts
 
+    break
   end
   break
 end
