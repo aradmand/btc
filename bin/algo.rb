@@ -4,13 +4,16 @@ require 'pry'
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require 'rbtc_arbitrage'
 
+accumulated_profit_in_cents = 0
 enabled = true
+
 MAX_PERCENT_PROFIT = 50
-MIN_PERCENT_PROFIT = 2
+MIN_PERCENT_PROFIT = 1
+
 
 def set_trading_parameters
-  @buyer = ENV['BTC_BUYER'].try(:to_sym) || :coinbase
-  @seller = ENV['BTC_SELLER'].try(:to_sym) || :bitstamp
+  @buyer = ENV['BTC_BUYER'].try(:to_sym) || :bitstamp
+  @seller = ENV['BTC_SELLER'].try(:to_sym) || :campbx
   @volume = 0.1
 end
 
@@ -18,17 +21,22 @@ end
 while enabled == true
 
   MAX_PERCENT_PROFIT.downto(MIN_PERCENT_PROFIT) do |percent|
+    percent -= 0.5
+    sleep(2.0)
+    puts
+    puts
+    puts
 
     start_time = Time.now
-    puts
+
     puts "#=================="
     puts "[Timestamp - #{start_time}]"
 
     set_trading_parameters
-    options = { buyer: @buyer, seller: @seller, volume: @volume}
+    options = { buyer: @buyer, seller: @seller, volume: @volume, cutoff: percent, verbose: true}
     rbtc_arbitrage = RbtcArbitrage::Trader.new(options)
 
-    command = "`rbtc --seller #{@seller} --buyer #{@buyer} --volume #{@volume} --cutoff #{percent}`"
+    command = "rbtc --seller #{@seller} --buyer #{@buyer} --volume #{@volume} --cutoff #{percent}"
 
     puts "rbtc_arbitrage command:"
     puts command
@@ -45,22 +53,31 @@ while enabled == true
     seller_price = rbtc_arbitrage.fetch_seller_price
     puts "[ Bid on sell (#{@seller}) exchange: (#{seller_price} in dollars) ]"
 
-    # Fetching exchange rates
-    # Coinbase (Ask): $363.18
-    # Bitstamp (Bid): $358.24
-    # buying 0.5 btc at Coinbase for $182.68
-    # selling 0.5 btc at Bitstamp for $178.05
-    # profit: $-4.63 (-2.54%) is below cutoff of 3%
+    profit_dollars, profit_percent = rbtc_arbitrage.get_profit
+    puts "Profit: $#{profit_dollars} --> #{profit_percent}%"
+
+    if profit_percent > percent
+      puts "PROFITABLE TRADE!"
+      accumulated_profit_in_cents += (profit_dollars * 100)
+      puts "ACCUMULATED PROFIT: #{accumulated_profit_in_cents / 100.0}"
+    end
 
     end_time = Time.now
     puts "[Timestamp - #{end_time}]"
     puts "[Elapsed time - #{end_time - start_time}]"
-    puts "#=================="
     puts
 
-    break
+    puts "\t---Executing command---"
+    start_time = Time.now
+    output = `#{command}`
+    end_time = Time.now
+    puts output
+    puts "[Elapsed time - #{end_time - start_time}]"
+    puts "\t---Done excecuting command---"
+    puts "#=================="
+
   end
-  break
+
 end
 
 

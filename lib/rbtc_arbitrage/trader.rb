@@ -29,6 +29,7 @@ module RbtcArbitrage
       @buy_client = client_for_exchange(exchange)
       exchange = opts[:seller] || :campbx
       @sell_client = client_for_exchange(exchange)
+      validate_env
       self
     end
 
@@ -39,6 +40,7 @@ module RbtcArbitrage
     def trade
       @profitable_trade = false
       fetch_prices
+
       log_info if options[:verbose]
 
       #determine profitable trade
@@ -113,6 +115,12 @@ module RbtcArbitrage
 
     def get_seller_balance
       btc_balance, usd_balance = @sell_client.balance
+    end
+
+    def get_profit
+      fetch_prices
+      profit_dollars = (@received - @paid).round(2)
+      [profit_dollars, calculate_profit]
     end
 
     def validate_env
