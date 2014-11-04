@@ -7,8 +7,7 @@ require 'rbtc_arbitrage'
 accumulated_profit_in_cents = 0
 enabled = true
 
-MAX_PERCENT_PROFIT = 5
-MIN_PERCENT_PROFIT = 1
+MIN_PERCENT_PROFIT = 0.5
 
 
 def set_trading_parameters
@@ -19,9 +18,7 @@ end
 
 
 while enabled == true
-
-  MAX_PERCENT_PROFIT.downto(MIN_PERCENT_PROFIT) do |percent|
-    percent -= 0.5
+    percent = MIN_PERCENT_PROFIT
     sleep(2.0)
     puts
     puts
@@ -75,8 +72,6 @@ while enabled == true
     puts "[Elapsed time - #{end_time - start_time}]"
     puts "\t---Done excecuting command---"
     puts "#=================="
-
-  end
 
 end
 
