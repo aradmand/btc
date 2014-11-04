@@ -7,7 +7,7 @@ require 'rbtc_arbitrage'
 accumulated_profit_in_cents = 0
 enabled = true
 
-MAX_PERCENT_PROFIT = 50
+MAX_PERCENT_PROFIT = 5
 MIN_PERCENT_PROFIT = 1
 
 
