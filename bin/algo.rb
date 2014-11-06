@@ -4,7 +4,7 @@ require 'pry'
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require 'rbtc_arbitrage'
 
-accumulated_profit_in_cents = 0
+@accumulated_profit_in_cents = 0
 enabled = true
 
 MIN_PERCENT_PROFIT = 0.5
@@ -53,9 +53,9 @@ def trade(buy_exchange, sell_exchange)
 
   if profit_percent > percent
     puts "PROFITABLE TRADE!"
-    accumulated_profit_in_cents += (profit_dollars * 100)
-    puts "ACCUMULATED PROFIT: #{accumulated_profit_in_cents / 100.0}"
+    @accumulated_profit_in_cents += (profit_dollars * 100)
   end
+  puts "ACCUMULATED PROFIT: #{@accumulated_profit_in_cents / 100.0}"
 
   end_time = Time.now
   puts "[Timestamp - #{end_time}]"
