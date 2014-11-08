@@ -90,7 +90,6 @@ exchange_2 = @seller
 
 while enabled == true
   set_trading_parameters
-  puts profit
   if profit > 0
     profit = trade(exchange_1, exchange_2)
   else
