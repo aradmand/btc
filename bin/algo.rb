@@ -6,8 +6,9 @@ require 'rbtc_arbitrage'
 
 @accumulated_profit_in_cents = 0
 enabled = true
+profit = 0
 
-MIN_PERCENT_PROFIT = 0.5
+MIN_PERCENT_PROFIT = 0.3
 
 
 def set_trading_parameters
@@ -62,21 +63,41 @@ def trade(buy_exchange, sell_exchange)
   puts "[Elapsed time - #{end_time - start_time}]"
   puts
 
-  puts "\t---Executing command---"
-  start_time = Time.now
-  output = `#{command}`
-  end_time = Time.now
-  puts output
-  puts "[Elapsed time - #{end_time - start_time}]"
-  puts "\t---Done excecuting command---"
-  puts "#=================="
+  begin
+      puts "\t---Executing command---"
+      start_time = Time.now
+      output = `#{command}`
+      end_time = Time.now
+      puts output
+      puts "[Elapsed time - #{end_time - start_time}]"
+      puts "\t---Done excecuting command---"
+      puts "#=================="
+  rescue Exception => e
+    puts " *** Exception has occured *** "
+    puts e.message
+    puts "************"
+  end
+  profit_dollars
 end
+
+def flip_exchanges(exchange_a, exchange_b)
+  [exchange_b, exchange_a]
+end
+
+set_trading_parameters
+exchange_1 = @buyer
+exchange_2 = @seller
 
 while enabled == true
   set_trading_parameters
-  trade(@buyer, @seller)
-  sleep(1.0 / 2.0)
-  trade(@seller, @buyer)
+  puts profit
+  if profit > 0
+    profit = trade(exchange_1, exchange_2)
+  else
+    exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
+  end
+  sleep(1.0 / 3.0)
+  profit = trade(exchange_1, exchange_2)
 end
 
 
