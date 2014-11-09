@@ -66,9 +66,8 @@ def trade(buy_exchange, sell_exchange)
   begin
       puts "\t---Executing command---"
       start_time = Time.now
-      output = `#{command}`
+      rbtc_arbitrage.trade
       end_time = Time.now
-      puts output
       puts "[Elapsed time - #{end_time - start_time}]"
       puts "\t---Done excecuting command---"
       puts "#=================="
