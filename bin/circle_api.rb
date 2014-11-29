@@ -10,6 +10,13 @@ def circle_customer_session_token
   ENV['CIRCLE_CUSTOMER_SESSION_TOKEN']
 end
 
+# btc_to_dollar_exchange_rate is the rate to exchange one bitcoin into dollars,
+# so if the exchange rate is 1 Btc = 376.78, then btc_to_dollar_exchange_rate
+# should be 376.78
+def calculate_fiat_value_for_exchange_rate(btc_to_dollar_exchange_rate, amount_of_btc_to_purchase = 0.11)
+  (amount_of_btc_to_purchase * btc_to_dollar_exchange_rate).round(2)
+end
+
 ################################################################################
 # Generate bitcoin Address for receiving bitcoin
 ################################################################################
@@ -123,6 +130,17 @@ account_balance_in_usd = exchange_rate * account_balance_in_btc_normalized
 # not allow the deposit to be made.  So those commands should be run back to
 # back with as little latency between them as possible
 ################################################################################
+
+
+exchange_rate_object_for_deposit_request = exchange_rate_object["USD"]
+fiat_value = calculate_fiat_value_for_exchange_rate(exchange_rate, 0.11)
+
+deposit_json_data = {"deposit" =>
+    {"fiatAccountId" => fiat_account_id,
+      "fiatValue" => fiat_value,
+      "exchangeRate" => exchange_rate_object_for_deposit_request
+    }
+  }
 
 
 # curl = Curl::Easy.new("https://www.circle.com/api/v2/customers/168900/accounts/186074/deposits") do |http|
