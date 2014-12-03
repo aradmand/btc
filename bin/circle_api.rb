@@ -127,6 +127,8 @@ account_balance_in_usd = exchange_rate * account_balance_in_btc_normalized
 
 
 ################################################################################
+# Buying a BTC via the Circle API
+#
 # To make a deposit, we pass the same exchange rate object we got from the
 # 'customers' command to the deposit command.  Presumably, if too much time has
 # passed between the exchangeRate timestamp and the current time, Circle will
@@ -186,9 +188,62 @@ end
 
 
 ################################################################################
-# Make a withdraw
+# Selling a BTC via the Circle API
+#
+# To make a withdraw, we use the 'withdraw' api command.  This is identical to
+# the deposit command except we hit the
+# '/api/v2/customers/168900/accounts/186074/withdraws' endpoint.
 #
 ################################################################################
+
+exchange_rate_object_for_deposit_request = exchange_rate_object["USD"]
+fiat_value = calculate_fiat_value_for_exchange_rate(exchange_rate, 0.11)
+
+withdraw_json_data = {"withdraw" =>
+    {"fiatAccountId" => fiat_account_id,
+      "fiatValue" => fiat_value,
+      "exchangeRate" => exchange_rate_object_for_deposit_request
+    }
+  }
+
+withdraw_json_data = withdraw_json_data.to_json
+content_length = withdraw_json_data.length
+
+
+curl = Curl::Easy.http_post("https://www.circle.com/api/v2/customers/168900/accounts/186074/withdraws", withdraw_json_data) do |http|
+  http.headers['host'] = 'www.circle.com'
+  http.headers['method'] = 'POST'
+  http.headers['path'] = '/api/v2/customers/168900/accounts/186074/withdraws'
+  http.headers['scheme'] = 'https'
+  http.headers['version'] = 'HTTP/1.1'
+  http.headers['accept'] = 'application/json, text/plain, */*'
+  http.headers['accept-encoding'] = 'gzip,deflate'
+  http.headers['accept-language'] = 'en-US,en;q=0.8'
+  http.headers['content-length'] = content_length
+  http.headers['content-type'] = 'application/json;charset=UTF-8'
+  http.headers['cookie'] = circle_cookie
+  http.headers['origin'] = 'https://www.circle.com'
+  http.headers['referer'] = "https://www.circle.com/withdraw/confirm"
+  http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+  http.headers['x-customer-id'] = "168900"
+  http.headers['x-customer-session-token'] = circle_customer_session_token
+end
+
+
+json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+parsed_json = JSON.parse(json_data)
+
+withdraw_response_status = parsed_json
+response_code = withdraw_response_status['response']['status']['code']
+if response_code == 0
+  puts 'Successful Withdraw!'
+  puts 'Withdraw Details:'
+  puts withdraw_response_status
+else
+  puts '** ERROR ** Withdraw Unsuccessful'
+  puts 'Withdraw Details:'
+  puts withdraw_response_status
+end
 
 
 
