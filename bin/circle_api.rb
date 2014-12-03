@@ -10,6 +10,10 @@ def circle_customer_session_token
   ENV['CIRCLE_CUSTOMER_SESSION_TOKEN']
 end
 
+def circle_cookie
+  "__cfduid=deddacfaa1ccc0a87f2dbb02236992f141415920996; _ys_trusted=%7B%22_%22%3A%227f9d364d1b7072f2624f1d38d4f16f331524bd0a%22%7D; optimizelyEndUserId=oeu1415922855321r0.6195648575667292; _ga=GA1.2.487562618.1415920999; optimizelySegments=%7B%7D; optimizelyBuckets=%7B%222169471078%22%3A%222162540652%22%7D; __zlcmid=RveDshCuVRISei; _ys_session=%7B%22_%22%3A%7B%22value%22%3A%229ec0a4d0fe0bf629b772e18f0fefcfef7832e53a%22%2C%22customerId%22%3A168900%2C%22expiryDate%22%3A1417609392035%7D%7D; AWSELB=6DE1C52F06D2FAD97948D9C525A94E7AAFA0177A1849DCA38BC685C7E31BBBD7E67C9F116A7A080C3C55A596F5F12AF54EFBD28ACBD89C30D991105D4265F1C4645BF26719; i18next=en; _ys_state=%7B%22_%22%3A%7B%22isEmailVerified%22%3Atrue%2C%22isMfaVerified%22%3Atrue%7D%7D; __utma=100973971.487562618.1415920999.1417477888.1417608165.9; __utmb=100973971.8.9.1417608278937; __utmc=100973971; __utmz=100973971.1415920999.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)"
+end
+
 # btc_to_dollar_exchange_rate is the rate to exchange one bitcoin into dollars,
 # so if the exchange rate is 1 Btc = 376.78, then btc_to_dollar_exchange_rate
 # should be 376.78
@@ -31,7 +35,7 @@ curl = Curl::Easy.new("https://www.circle.com/api/v2/customers/168900/accounts/1
   http.headers['accept'] = 'application/json, text/plain, */*'
   http.headers['accept-encoding'] = 'gzip,deflate,sdch'
   http.headers['accept-language'] = 'en-US,en;q=0.8'
-  http.headers['cookie'] = "__cfduid=d0de65aad44eddf6207369c49a488806f1410231774404; optimizelyEndUserId=oeu1416148420288r0.7686132828239352; _ys_trusted=%7B%22_%22%3A%2269b9db727e9281eb49c980e11f349c074fc62c9b%22%7D; optimizelySegments=%7B%7D; optimizelyBuckets=%7B%222169471078%22%3A%222162540652%22%7D; AWSELB=6DE1C52F06D2FAD97948D9C525A94E7AAFA0177A18F0E0AF588D85BA3F707B2324DC85D6467A080C3C55A596F5F12AF54EFBD28ACB95EEF089DAF61F007FEAEB120747ABFC; _ys_session=%7B%22_%22%3A%7B%22value%22%3A%22920567339e61ee8fcd556e0f82d46d209910eca2%22%2C%22customerId%22%3A168900%2C%22expiryDate%22%3A1416279016350%7D%7D; __utma=100973971.7568760.1410231775.1416269203.1416277808.16; __utmb=100973971.3.10.1416277808; __utmc=100973971; __utmz=100973971.1410231775.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); _ys_state=%7B%22_%22%3A%7B%22isEmailVerified%22%3Atrue%2C%22isMfaVerified%22%3Atrue%7D%7D; i18next=en"
+  http.headers['cookie'] = circle_cookie
   http.headers['referer'] = "https://www.circle.com/request"
   http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
   http.headers['x-customer-id'] = "168900"
@@ -58,7 +62,7 @@ curl = Curl::Easy.new("https://www.circle.com/api/v2/customers/168900/fiatAccoun
   http.headers['accept'] = 'application/json, text/plain, */*'
   http.headers['accept-encoding'] = 'gzip,deflate,sdch'
   http.headers['accept-language'] = 'en-US,en;q=0.8'
-  http.headers['cookie'] = "__cfduid=d0de65aad44eddf6207369c49a488806f1410231774404; optimizelyEndUserId=oeu1416148420288r0.7686132828239352; _ys_trusted=%7B%22_%22%3A%2269b9db727e9281eb49c980e11f349c074fc62c9b%22%7D; optimizelySegments=%7B%7D; optimizelyBuckets=%7B%222169471078%22%3A%222162540652%22%7D; AWSELB=6DE1C52F06D2FAD97948D9C525A94E7AAFA0177A18F0E0AF588D85BA3F707B2324DC85D6467A080C3C55A596F5F12AF54EFBD28ACB95EEF089DAF61F007FEAEB120747ABFC; _ys_session=%7B%22_%22%3A%7B%22value%22%3A%22920567339e61ee8fcd556e0f82d46d209910eca2%22%2C%22customerId%22%3A168900%2C%22expiryDate%22%3A1416279016350%7D%7D; __utma=100973971.7568760.1410231775.1416269203.1416277808.16; __utmb=100973971.3.10.1416277808; __utmc=100973971; __utmz=100973971.1410231775.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); _ys_state=%7B%22_%22%3A%7B%22isEmailVerified%22%3Atrue%2C%22isMfaVerified%22%3Atrue%7D%7D; i18next=en"
+  http.headers['cookie'] = circle_cookie
   http.headers['referer'] = "https://www.circle.com/deposit"
   http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
   http.headers['x-customer-id'] = "168900"
@@ -103,7 +107,7 @@ curl = Curl::Easy.new("https://www.circle.com/api/v2/customers/168900") do |http
   http.headers['accept'] = 'application/json, text/plain, */*'
   http.headers['accept-encoding'] = 'gzip,deflate,sdch'
   http.headers['accept-language'] = 'en-US,en;q=0.8'
-  http.headers['cookie'] = "__cfduid=d0de65aad44eddf6207369c49a488806f1410231774404; optimizelyEndUserId=oeu1416148420288r0.7686132828239352; _ys_trusted=%7B%22_%22%3A%2269b9db727e9281eb49c980e11f349c074fc62c9b%22%7D; optimizelySegments=%7B%7D; optimizelyBuckets=%7B%222169471078%22%3A%222162540652%22%7D; AWSELB=6DE1C52F06D2FAD97948D9C525A94E7AAFA0177A18F0E0AF588D85BA3F707B2324DC85D6467A080C3C55A596F5F12AF54EFBD28ACB95EEF089DAF61F007FEAEB120747ABFC; _ys_session=%7B%22_%22%3A%7B%22value%22%3A%22920567339e61ee8fcd556e0f82d46d209910eca2%22%2C%22customerId%22%3A168900%2C%22expiryDate%22%3A1416279016350%7D%7D; __utma=100973971.7568760.1410231775.1416269203.1416277808.16; __utmb=100973971.3.10.1416277808; __utmc=100973971; __utmz=100973971.1410231775.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); _ys_state=%7B%22_%22%3A%7B%22isEmailVerified%22%3Atrue%2C%22isMfaVerified%22%3Atrue%7D%7D; i18next=en"
+  http.headers['cookie'] = circle_cookie
   http.headers['referer'] = "https://www.circle.com/accounts"
   http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
   http.headers['x-customer-id'] = "168900"
@@ -119,7 +123,6 @@ exchange_rate = parsed_json['response']['customer']['exchangeRate']['USD']['rate
 account_balance_in_btc_raw = parsed_json['response']['customer']['accounts'].first['satoshiAvailableBalance']
 account_balance_in_btc_normalized = account_balance_in_btc_raw / 100000000.0
 account_balance_in_usd = exchange_rate * account_balance_in_btc_normalized
-
 
 
 
@@ -142,41 +145,50 @@ deposit_json_data = {"deposit" =>
     }
   }
 
-
-# curl = Curl::Easy.new("https://www.circle.com/api/v2/customers/168900/accounts/186074/deposits") do |http|
-#   http.headers['host'] = 'www.circle.com'
-#   http.headers['method'] = 'POST'
-#   http.headers['path'] = '/api/v2/customers/168900/accounts/186074/deposits'
-#   http.headers['scheme'] = 'https'
-#   http.headers['version'] = 'HTTP/1.1'
-#   http.headers['accept'] = 'application/json, text/plain, */*'
-#   http.headers['accept-encoding'] = 'gzip,deflate'
-#   http.headers['accept-language'] = 'en-US,en;q=0.8'
-#   http.headers['content-length'] = 170
-#   http.headers['content-type'] = 'application/json;charset=UTF-8'
-#   http.headers['cookie'] = "__cfduid=d0de65aad44eddf6207369c49a488806f1410231774404; optimizelyEndUserId=oeu1416148420288r0.7686132828239352; _ys_trusted=%7B%22_%22%3A%2269b9db727e9281eb49c980e11f349c074fc62c9b%22%7D; optimizelySegments=%7B%7D; optimizelyBuckets=%7B%222169471078%22%3A%222162540652%22%7D; AWSELB=6DE1C52F06D2FAD97948D9C525A94E7AAFA0177A18F0E0AF588D85BA3F707B2324DC85D6467A080C3C55A596F5F12AF54EFBD28ACB95EEF089DAF61F007FEAEB120747ABFC; _ys_session=%7B%22_%22%3A%7B%22value%22%3A%22920567339e61ee8fcd556e0f82d46d209910eca2%22%2C%22customerId%22%3A168900%2C%22expiryDate%22%3A1416279016350%7D%7D; __utma=100973971.7568760.1410231775.1416269203.1416277808.16; __utmb=100973971.3.10.1416277808; __utmc=100973971; __utmz=100973971.1410231775.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); _ys_state=%7B%22_%22%3A%7B%22isEmailVerified%22%3Atrue%2C%22isMfaVerified%22%3Atrue%7D%7D; i18next=en"
-#   http.headers['origin'] = 'https://www.circle.com'
-#   http.headers['referer'] = "https://www.circle.com/deposit"
-#   http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
-#   http.headers['x-customer-id'] = "168900"
-#   http.headers['x-customer-session-token'] = circle_customer_session_token
-
-# ####TODO!!
-# # Set request payload to this:
-# # {"deposit":{"fiatAccountId":"c9f5ff6b-3812-427d-b700-56d28d370db2","fiatValue":37.55,"exchangeRate":{"base":"BTC","quote":"USD","rate":375.28,"timestamp":1416831645360}}}
-# ############
+deposit_json_data = deposit_json_data.to_json
+content_length = deposit_json_data.length
 
 
-# end
+curl = Curl::Easy.http_post("https://www.circle.com/api/v2/customers/168900/accounts/186074/deposits", deposit_json_data) do |http|
+  http.headers['host'] = 'www.circle.com'
+  http.headers['method'] = 'POST'
+  http.headers['path'] = '/api/v2/customers/168900/accounts/186074/deposits'
+  http.headers['scheme'] = 'https'
+  http.headers['version'] = 'HTTP/1.1'
+  http.headers['accept'] = 'application/json, text/plain, */*'
+  http.headers['accept-encoding'] = 'gzip,deflate'
+  http.headers['accept-language'] = 'en-US,en;q=0.8'
+  http.headers['content-length'] = content_length
+  http.headers['content-type'] = 'application/json;charset=UTF-8'
+  http.headers['cookie'] = circle_cookie
+  http.headers['origin'] = 'https://www.circle.com'
+  http.headers['referer'] = "https://www.circle.com/deposit"
+  http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+  http.headers['x-customer-id'] = "168900"
+  http.headers['x-customer-session-token'] = circle_customer_session_token
+end
 
-# response = curl.perform
-# json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-# parsed_json = JSON.parse(json_data)
 
-# circle_bitcoin_address_for_receiving = parsed_json['response']['bitcoinAddress']
+json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+parsed_json = JSON.parse(json_data)
+
+deposit_response_status = parsed_json
+response_code = deposit_response_status['response']['status']['code']
+if response_code == 0
+  puts 'Successful Deposit!'
+  puts 'Deposit Details:'
+  puts deposit_response_status
+else
+  puts '** ERROR ** Deposit Unsuccessful'
+  puts 'Deposit Details:'
+  puts deposit_response_status
+end
 
 
-
+################################################################################
+# Make a withdraw
+#
+################################################################################
 
 
 
