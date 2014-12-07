@@ -14,6 +14,10 @@ def circle_cookie
   "__cfduid=deddacfaa1ccc0a87f2dbb02236992f141415920996; _ys_trusted=%7B%22_%22%3A%227f9d364d1b7072f2624f1d38d4f16f331524bd0a%22%7D; optimizelyEndUserId=oeu1415922855321r0.6195648575667292; _ga=GA1.2.487562618.1415920999; optimizelySegments=%7B%7D; optimizelyBuckets=%7B%222169471078%22%3A%222162540652%22%7D; __zlcmid=RveDshCuVRISei; _ys_session=%7B%22_%22%3A%7B%22value%22%3A%229ec0a4d0fe0bf629b772e18f0fefcfef7832e53a%22%2C%22customerId%22%3A168900%2C%22expiryDate%22%3A1417609392035%7D%7D; AWSELB=6DE1C52F06D2FAD97948D9C525A94E7AAFA0177A1849DCA38BC685C7E31BBBD7E67C9F116A7A080C3C55A596F5F12AF54EFBD28ACBD89C30D991105D4265F1C4645BF26719; i18next=en; _ys_state=%7B%22_%22%3A%7B%22isEmailVerified%22%3Atrue%2C%22isMfaVerified%22%3Atrue%7D%7D; __utma=100973971.487562618.1415920999.1417477888.1417608165.9; __utmb=100973971.8.9.1417608278937; __utmc=100973971; __utmz=100973971.1415920999.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)"
 end
 
+def coinbase_btc_address
+  "16xXNkdeH71irdeKbgWxsZT63PHBPXps3t"
+end
+
 # btc_to_dollar_exchange_rate is the rate to exchange one bitcoin into dollars,
 # so if the exchange rate is 1 Btc = 376.78, then btc_to_dollar_exchange_rate
 # should be 376.78
@@ -244,6 +248,73 @@ else
   puts 'Withdraw Details:'
   puts withdraw_response_status
 end
+
+
+
+################################################################################
+# Sending a BTC to another BTC address using the Circle API
+#
+#
+################################################################################
+
+exchange_rate_object_for_btc_transfer = exchange_rate_object["USD"]
+fiat_value = calculate_fiat_value_for_exchange_rate(exchange_rate, 0.11)
+satoshi_value = 1000000 * (fiat_value / exchange_rate.to_f).round(18)
+
+btc_transfer_json_data = {"transaction" =>
+  {"exchangeRate" => exchange_rate_object_for_btc_transfer,
+  "bitcoinOrEmailAddress" => coinbase_btc_address,
+  "satoshiValue" => satoshi_value,
+  "fiatValue" => fiat_value,
+  "currencyCode" => "USD",
+  "message" => "sending 0.11 btc (#{fiat_value}) to coinbase."
+  }
+}
+
+btc_transfer_json_data = btc_transfer_json_data.to_json
+content_length = btc_transfer_json_data.length
+
+curl = Curl::Easy.http_post("https://www.circle.com/api/v2/customers/168900/accounts/186074/transactions", btc_transfer_json_data) do |http|
+  http.headers['host'] = 'www.circle.com'
+  http.headers['method'] = 'POST'
+  http.headers['path'] = '/api/v2/customers/168900/accounts/186074/transactions'
+  http.headers['scheme'] = 'https'
+  http.headers['version'] = 'HTTP/1.1'
+  http.headers['accept'] = 'application/json, text/plain, */*'
+  http.headers['accept-encoding'] = 'gzip,deflate'
+  http.headers['accept-language'] = 'en-US,en;q=0.8'
+  http.headers['content-length'] = content_length
+  http.headers['content-type'] = 'application/json;charset=UTF-8'
+  http.headers['cookie'] = circle_cookie
+  http.headers['origin'] = 'https://www.circle.com'
+  http.headers['referer'] = "https://www.circle.com/send/confirm"
+  http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+  http.headers['x-app-id'] = 'angularjs'
+  http.headers['x-app-version'] = "0.0.1"
+  http.headers['x-customer-id'] = "168900"
+  http.headers['x-customer-session-token'] = circle_customer_session_token
+end
+
+json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+parsed_json = JSON.parse(json_data)
+
+btc_transfer_response_status = parsed_json
+response_code = btc_transfer_response_status['response']['status']['code']
+if response_code == 0
+  puts 'Successful BTC tansfer!'
+  puts 'Transfer Details:'
+  puts btc_transfer_response_status
+else
+  puts '** ERROR ** BTC Transfer Unsuccessful'
+  puts 'Transfer Details:'
+  puts btc_transfer_response_status
+end
+
+
+
+
+
+
 
 
 
