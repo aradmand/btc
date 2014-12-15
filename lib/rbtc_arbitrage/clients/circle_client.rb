@@ -20,6 +20,7 @@ module RbtcArbitrage
 
       # Configures the client's API keys.
       def validate_env
+        validate_keys :circle_customer_session_token, :circle_cookie
       end
 
       # `action` is :buy or :sell
