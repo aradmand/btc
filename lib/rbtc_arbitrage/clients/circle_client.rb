@@ -60,6 +60,14 @@ module RbtcArbitrage
 
     private
 
+      def circle_cookie
+        ENV['CIRCLE_COOKIE']
+      end
+
+      def circle_customer_session_token
+        ENV['CIRCLE_CUSTOMER_SESSION_TOKEN']
+      end
+
       def api_customers_command(customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'])
         api_url = "https://www.circle.com/api/v2/customers/#{customer_id}"
 
