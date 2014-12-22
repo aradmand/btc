@@ -9,6 +9,9 @@ require 'json'
 # export CIRCLE_BANK_ACCOUNT_ID=186074
 # export CIRCLE_CUSTOMER_SESSION_TOKEN=
 # export CIRCLE_COOKIE=""
+# export COINBASE_KEY=
+# export COINBASE_SECRET=
+
 
 # Instantiate Circle Client
 circle_client = RbtcArbitrage::Clients::CircleClient.new
