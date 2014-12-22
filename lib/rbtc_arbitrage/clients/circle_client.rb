@@ -70,90 +70,75 @@ module RbtcArbitrage
       end
 
       def transfer_btc(volume_in_btc, other_client)
-        customers_command_result = api_customers_command
-
+        other_client_btc_address = other_client.address
         volume = volume_in_btc
+
+        customers_command_result = api_customers_command
 
         exchange_rate_object = customers_command_result[:exchange_rate_object]
         exchange_rate = customers_command_result[:exchange_rate]
         fiat_value = calculate_fiat_value_for_exchange_rate(exchange_rate, volume)
         satoshi_value = 1000000 * (fiat_value / exchange_rate.to_f).round(18)
 
+        exchange_rate_object_for_btc_transfer = exchange_rate_object["USD"]
+
         btc_transfer_json_data = {"transaction" =>
           {"exchangeRate" => exchange_rate_object_for_btc_transfer,
-          "bitcoinOrEmailAddress" => coinbase_btc_address,
+          "bitcoinOrEmailAddress" => other_client_btc_address,
           "satoshiValue" => satoshi_value,
           "fiatValue" => fiat_value,
           "currencyCode" => "USD",
-          "message" => "sending 0.11 btc (#{fiat_value}) to coinbase."
+          "message" => "sending #{volume} btc (#{fiat_value}) to #{other_client.exchange.to_s}."
           }
         }
 
-        btc_transfer_json_data = btc_transfer_json_data.to_json
+        response = api_transactions_command(btc_transfer_json_data)
+      end
+
+      ## Circle Uses the transactions command internally to do btc transfers
+      def api_transactions_command(transfer_json_data, customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])
+        btc_transfer_json_data = transfer_json_data.to_json
         content_length = btc_transfer_json_data.length
 
-        # {
-        #   exchange_rate_object: exchange_rate_object,
-        #   exchange_rate: exchange_rate,
-        #   account_balance_in_btc_raw: account_balance_in_btc_raw,
-        #   account_balance_in_btc_normalized: account_balance_in_btc_normalized,
-        #   account_balance_in_usd: account_balance_in_usd
-        # }
+        api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/transactions"
 
+        path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/transactions"
 
+        curl = Curl::Easy.http_post(api_url, btc_transfer_json_data) do |http|
+          http.headers['host'] = 'www.circle.com'
+          http.headers['method'] = 'POST'
+          http.headers['path'] = path_header
+          http.headers['scheme'] = 'https'
+          http.headers['version'] = 'HTTP/1.1'
+          http.headers['accept'] = 'application/json, text/plain, */*'
+          http.headers['accept-encoding'] = 'gzip,deflate'
+          http.headers['accept-language'] = 'en-US,en;q=0.8'
+          http.headers['content-length'] = content_length
+          http.headers['content-type'] = 'application/json;charset=UTF-8'
+          http.headers['cookie'] = circle_cookie
+          http.headers['origin'] = 'https://www.circle.com'
+          http.headers['referer'] = "https://www.circle.com/send/confirm"
+          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+          http.headers['x-app-id'] = 'angularjs'
+          http.headers['x-app-version'] = "0.0.1"
+          http.headers['x-customer-id'] = customer_id
+          http.headers['x-customer-session-token'] = customer_session_token
+        end
 
-        # exchange_rate_object_for_btc_transfer = exchange_rate_object["USD"]
-        # fiat_value = calculate_fiat_value_for_exchange_rate(exchange_rate, 0.11)
-        # satoshi_value = 1000000 * (fiat_value / exchange_rate.to_f).round(18)
+        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+        parsed_json = JSON.parse(json_data)
 
-        # btc_transfer_json_data = {"transaction" =>
-        #   {"exchangeRate" => exchange_rate_object_for_btc_transfer,
-        #   "bitcoinOrEmailAddress" => coinbase_btc_address,
-        #   "satoshiValue" => satoshi_value,
-        #   "fiatValue" => fiat_value,
-        #   "currencyCode" => "USD",
-        #   "message" => "sending 0.11 btc (#{fiat_value}) to coinbase."
-        #   }
-        # }
-
-        # btc_transfer_json_data = btc_transfer_json_data.to_json
-        # content_length = btc_transfer_json_data.length
-
-        # curl = Curl::Easy.http_post("https://www.circle.com/api/v2/customers/168900/accounts/186074/transactions", btc_transfer_json_data) do |http|
-        #   http.headers['host'] = 'www.circle.com'
-        #   http.headers['method'] = 'POST'
-        #   http.headers['path'] = '/api/v2/customers/168900/accounts/186074/transactions'
-        #   http.headers['scheme'] = 'https'
-        #   http.headers['version'] = 'HTTP/1.1'
-        #   http.headers['accept'] = 'application/json, text/plain, */*'
-        #   http.headers['accept-encoding'] = 'gzip,deflate'
-        #   http.headers['accept-language'] = 'en-US,en;q=0.8'
-        #   http.headers['content-length'] = content_length
-        #   http.headers['content-type'] = 'application/json;charset=UTF-8'
-        #   http.headers['cookie'] = circle_cookie
-        #   http.headers['origin'] = 'https://www.circle.com'
-        #   http.headers['referer'] = "https://www.circle.com/send/confirm"
-        #   http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
-        #   http.headers['x-app-id'] = 'angularjs'
-        #   http.headers['x-app-version'] = "0.0.1"
-        #   http.headers['x-customer-id'] = "168900"
-        #   http.headers['x-customer-session-token'] = circle_customer_session_token
-        # end
-
-        # json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        # parsed_json = JSON.parse(json_data)
-
-        # btc_transfer_response_status = parsed_json
-        # response_code = btc_transfer_response_status['response']['status']['code']
-        # if response_code == 0
-        #   puts 'Successful BTC tansfer!'
-        #   puts 'Transfer Details:'
-        #   puts btc_transfer_response_status
-        # else
-        #   puts '** ERROR ** BTC Transfer Unsuccessful'
-        #   puts 'Transfer Details:'
-        #   puts btc_transfer_response_status
-        # end
+        btc_transfer_response_status = parsed_json
+        response_code = btc_transfer_response_status['response']['status']['code']
+        if response_code == 0
+          # puts 'Successful BTC tansfer!'
+          # puts 'Transfer Details:'
+          # puts btc_transfer_response_status
+        else
+          puts '** ERROR ** BTC Transfer Unsuccessful'
+          puts 'Transfer Details:'
+          puts btc_transfer_response_status
+        end
       end
 
       def circle_cookie
