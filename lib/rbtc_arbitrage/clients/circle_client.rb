@@ -48,6 +48,11 @@ module RbtcArbitrage
 
       # Transfers BTC to the address of a different
       # exchange.
+      #
+      # NOTE: The volume of BTC exchanged MUST be 0.01 BTC or
+      #  Higher, or this transfer method will NOT work.
+      #  As a result, the default volume to exchange has been changed
+      #  to 0.011 BTC
       def transfer(other_client)
         volume = @options[:volume]
         transfer_btc(volume, other_client)
@@ -61,6 +66,22 @@ module RbtcArbitrage
       end
 
     private
+
+      def calculate_satoshi_value(fiat_value, exchange_rate)
+        satoshi_value = (fiat_value / exchange_rate.to_f).round(18)
+        saftey_index = 0
+
+        while satoshi_value.to_s.first == '0'
+          satoshi_value = satoshi_value * 10
+
+          saftey_index += 1
+          if saftey_index >= 18
+            raise 'Error while trying to calculate satoshi value!'
+            exit
+          end
+        end
+        satoshi_value * 1000000
+      end
 
       # btc_to_dollar_exchange_rate is the rate to exchange one bitcoin into dollars,
       # so if the exchange rate is 1 Btc = 376.78, then btc_to_dollar_exchange_rate
@@ -78,7 +99,8 @@ module RbtcArbitrage
         exchange_rate_object = customers_command_result[:exchange_rate_object]
         exchange_rate = customers_command_result[:exchange_rate]
         fiat_value = calculate_fiat_value_for_exchange_rate(exchange_rate, volume)
-        satoshi_value = 1000000 * (fiat_value / exchange_rate.to_f).round(18)
+
+        satoshi_value = calculate_satoshi_value(fiat_value, exchange_rate)
 
         exchange_rate_object_for_btc_transfer = exchange_rate_object["USD"]
 
