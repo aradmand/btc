@@ -49,6 +49,42 @@ circle_client = RbtcArbitrage::Clients::CircleClient.new
 coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
 
 # Uncomment the following line to transfer bitcoin to coinbase
- circle_client.transfer(coinbase_client)
+# circle_client.transfer(coinbase_client)
+
+
+
+
+####################
+# Price
+####################
+
+coinbase_buy_price = coinbase_client.price(:buy)
+coinbase_sell_price = coinbase_client.price(:sell)
+
+puts 'coinbase_buy_price'
+puts coinbase_buy_price
+
+puts 'coinbase_sell_price'
+puts coinbase_sell_price
+
+circle_buy_price = circle_client.price(:buy)
+circle_sell_price = circle_client.price(:sell)
+
+puts 'circle_buy_price'
+puts circle_buy_price
+
+puts 'circle_sell_price'
+puts circle_sell_price
+
+
+
+
+
+
+
+
+
+
+
 
 
