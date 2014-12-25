@@ -44,6 +44,9 @@ module RbtcArbitrage
       # `action` is :buy or :sell
       # Returns a Numeric type.
       def price action
+        result = api_customers_command
+        exchange_rate = result[:exchange_rate]
+        exchange_rate.to_f
       end
 
       # Transfers BTC to the address of a different
