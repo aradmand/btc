@@ -79,6 +79,31 @@ puts circle_sell_price
 
 
 
+####################
+#  Trade
+#
+# Uncomment the following section to buy :volume BTC
+# and then sell :volume BTC
+##############################
+
+# puts "Buying #{circle_client.options[:volume]} BTC"
+# buy = circle_client.trade(:buy)
+# if buy == 0
+#   puts "Sucessfully bought #{circle_client.options[:volume]} BTC"
+# else
+#   puts "Error buying BTC"
+#   puts buy
+# end
+
+# puts "Selling #{circle_client.options[:volume]} BTC"
+# sell = circle_client.trade(:sell)
+# if sell == 0
+#   puts "Sucessfully sold #{circle_client.options[:volume]} BTC"
+# else
+#   puts "Error selling BTC"
+#   puts buy
+# end
+
 
 
 
