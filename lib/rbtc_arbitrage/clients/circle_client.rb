@@ -110,15 +110,6 @@ module RbtcArbitrage
         }
       end
 
-      ###
-      #  This should be set to the description of the Checking
-      #  account you are interested in using for deposits / withdraws
-      #  for buying and selling BTC.
-      ###
-      def fiat_account_description
-        "BANK OF AMERICA, N.A. ****4655"
-      end
-
       def find_fiat_account_id(fiat_account_array)
         fiat_account_id = nil
         fiat_account_array.each do |fiat_account|
@@ -400,6 +391,15 @@ module RbtcArbitrage
           account_balance_in_btc_normalized: account_balance_in_btc_normalized,
           account_balance_in_usd: account_balance_in_usd
         }
+      end
+
+      ###
+      #  This should be set to the description of the Checking
+      #  account you are interested in using for deposits / withdraws
+      #  for buying and selling BTC.
+      ###
+      def fiat_account_description
+        "BANK OF AMERICA, N.A. ****4655"
       end
 
       def circle_cookie
