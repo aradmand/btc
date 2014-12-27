@@ -108,13 +108,21 @@ module RbtcArbitrage
           fiat_account_id: fiat_account_id,
           fiat_account_array: fiat_account_array
         }
+      end
 
+      ###
+      #  This should be set to the description of the Checking
+      #  account you are interested in using for deposits / withdraws
+      #  for buying and selling BTC.
+      ###
+      def fiat_account_description
+        "BANK OF AMERICA, N.A. ****4655"
       end
 
       def find_fiat_account_id(fiat_account_array)
         fiat_account_id = nil
         fiat_account_array.each do |fiat_account|
-          if fiat_account['accountType'] == 'checking' && fiat_account['description'] == "BANK OF AMERICA, N.A. ****4655"
+          if fiat_account['accountType'] == 'checking' && fiat_account['description'] == fiat_account_description
             fiat_account_id = fiat_account['id']
             break
           end
@@ -149,7 +157,68 @@ module RbtcArbitrage
       end
 
       def sell_btc(volume)
+        fiat_account_command_result = fiat_account_command
+        fiat_account_id = fiat_account_command_result[:fiat_account_id]
 
+        customers_command_result = api_customers_command
+
+        exchange_rate_object = customers_command_result[:exchange_rate_object]
+        exchange_rate_object_for_deposit_request = exchange_rate_object["USD"]
+        exchange_rate = customers_command_result[:exchange_rate]
+        fiat_value = calculate_fiat_value_for_exchange_rate(exchange_rate, volume)
+
+        withdraw_json_data = {"withdraw" =>
+          {"fiatAccountId" => fiat_account_id,
+            "fiatValue" => fiat_value,
+            "exchangeRate" => exchange_rate_object_for_deposit_request
+          }
+        }
+
+        api_withdraws_command_result = api_withdraws_command(withdraw_json_data)
+      end
+
+      def api_withdraws_command(withdraw_json_data, customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])
+        api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdraws"
+
+        path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdraws"
+
+        withdraw_json_data = withdraw_json_data.to_json
+        content_length = withdraw_json_data.length
+
+        curl = Curl::Easy.http_post(api_url, withdraw_json_data) do |http|
+          http.headers['host'] = 'www.circle.com'
+          http.headers['method'] = 'POST'
+          http.headers['path'] = path_header
+          http.headers['scheme'] = 'https'
+          http.headers['version'] = 'HTTP/1.1'
+          http.headers['accept'] = 'application/json, text/plain, */*'
+          http.headers['accept-encoding'] = 'gzip,deflate'
+          http.headers['accept-language'] = 'en-US,en;q=0.8'
+          http.headers['content-length'] = content_length
+          http.headers['content-type'] = 'application/json;charset=UTF-8'
+          http.headers['cookie'] = circle_cookie
+          http.headers['origin'] = 'https://www.circle.com'
+          http.headers['referer'] = "https://www.circle.com/withdraw/confirm"
+          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+          http.headers['x-customer-id'] = customer_id
+          http.headers['x-customer-session-token'] = circle_customer_session_token
+        end
+
+        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+        parsed_json = JSON.parse(json_data)
+
+        withdraw_response_status = parsed_json
+        response_code = withdraw_response_status['response']['status']['code']
+        if response_code == 0
+          # puts 'Successful Withdraw!'
+          # puts 'Withdraw Details:'
+          # puts withdraw_response_status
+        else
+          puts '** ERROR ** Withdraw Unsuccessful'
+          puts 'Withdraw Details:'
+          puts withdraw_response_status
+        end
+        response_code
       end
 
       def api_deposits_command(deposit_json_data, customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])
@@ -290,14 +359,7 @@ module RbtcArbitrage
           puts 'Transfer Details:'
           puts btc_transfer_response_status
         end
-      end
-
-      def circle_cookie
-        ENV['CIRCLE_COOKIE']
-      end
-
-      def circle_customer_session_token
-        ENV['CIRCLE_CUSTOMER_SESSION_TOKEN']
+        response_code
       end
 
       def api_customers_command(customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'])
@@ -338,6 +400,14 @@ module RbtcArbitrage
           account_balance_in_btc_normalized: account_balance_in_btc_normalized,
           account_balance_in_usd: account_balance_in_usd
         }
+      end
+
+      def circle_cookie
+        ENV['CIRCLE_COOKIE']
+      end
+
+      def circle_customer_session_token
+        ENV['CIRCLE_CUSTOMER_SESSION_TOKEN']
       end
     end
   end
