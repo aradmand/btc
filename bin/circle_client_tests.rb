@@ -79,6 +79,14 @@ puts circle_sell_price
 
 
 
+####################
+#  Trade
+####################
+
+#buy = circle_client.trade(:buy)
+
+#sell = circle_client.trade(:sell)
+
 
 
 
