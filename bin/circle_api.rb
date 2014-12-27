@@ -97,7 +97,7 @@ curl = Curl::Easy.new("https://www.circle.com/api/v2/customers/2987692") do |htt
   http.headers['referer'] = "https://www.circle.com/accounts"
   http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
   http.headers['x-customer-id'] = "2987692"
-  http.headers['x-customer-session-token'] = circle_customer_session_token
+  http.headers['x-customer-session-token'] = "85d99c98bfda89912b35bd8a8a75abadccaa1a0a"
 end
 
 response = curl.perform
@@ -109,6 +109,9 @@ exchange_rate = parsed_json['response']['customer']['exchangeRate']['USD']['rate
 account_balance_in_btc_raw = parsed_json['response']['customer']['accounts'].first['satoshiAvailableBalance']
 account_balance_in_btc_normalized = account_balance_in_btc_raw / 100000000.0
 account_balance_in_usd = exchange_rate * account_balance_in_btc_normalized
+puts exchange_rate_object
+puts "your account balance is $ #{account_balance_in_usd}" 
+
 
 
 
@@ -167,6 +170,10 @@ account_balance_in_usd = exchange_rate * account_balance_in_btc_normalized
 # puts account_balance_in_usd
 # puts 'Circle Bitcoin Address for Receiving BTC:'
 # puts circle_bitcoin_address_for_receiving
+
+def exchange
+  :circle
+end
 
 
 
