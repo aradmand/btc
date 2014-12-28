@@ -13,7 +13,7 @@ MIN_PERCENT_PROFIT = 0.3
 
 def set_trading_parameters
   @buyer = ENV['BTC_BUYER'].try(:to_sym) || :bitstamp
-  @seller = ENV['BTC_SELLER'].try(:to_sym) || :campbx
+  @seller = ENV['BTC_SELLER'].try(:to_sym) || :circle
   @volume = 0.1
 end
 
