@@ -106,6 +106,24 @@ puts circle_sell_price
 
 
 
+<<<<<<< HEAD
+=======
+###################
+#  Address command
+###################
+
+
+address = circle_client.address
+puts 'BTC Transfer address:'
+puts address
+
+
+
+
+
+
+
+>>>>>>> a4ce8f32c78e9c8a08ae3e893bacefecffe90cae
 
 
 
