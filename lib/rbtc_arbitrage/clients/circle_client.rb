@@ -26,7 +26,6 @@ module RbtcArbitrage
       end
 
       def interface
-        @address ||= interface.get_btc_address["Success"]
       end
 
       # Configures the client's API keys.
@@ -72,14 +71,15 @@ module RbtcArbitrage
       # remove this method and set the ENV
       # variable [this-exchange-name-in-caps]_ADDRESS
       def address
+        api_address_command
       end
 
     private
 
       def fiat_account_command(customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'])
-        api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/fiatAccounts"
+        api_url = "https://www.circle.com/api/v2/customers/2987692/fiatAccounts"
 
-        path_header = "/api/v2/customers/#{customer_id}/fiatAccounts"
+        path_header = "/api/v2/customers/2987692/fiatAccounts"
 
         curl = Curl::Easy.new(api_url) do |http|
           http.headers['host'] = 'www.circle.com'
@@ -90,11 +90,11 @@ module RbtcArbitrage
           http.headers['accept'] = 'application/json, text/plain, */*'
           http.headers['accept-encoding'] = 'gzip,deflate,sdch'
           http.headers['accept-language'] = 'en-US,en;q=0.8'
-          http.headers['cookie'] = circle_cookie
+          http.headers['cookie'] = "__cfduid=d961dc7c24807be5821e83548d5a4571a1416969886; optimizelyEndUserId=oeu1416969894937r0.29897251864895225; _ys_trusted=%7B%22_%22%3A%22c9d3b7f576f2656fbd10328856dc3e465b9b9310%22%7D; optimizelySegments=%7B%222104001654%22%3A%22gc%22%2C%222111040759%22%3A%22direct%22%2C%222124710513%22%3A%22false%22%7D; optimizelyBuckets=%7B%222169471078%22%3A%222165550481%22%7D; _ys_session=%7B%22_%22%3A%7B%22value%22%3A%224580a0d4a5caaa35e731942dda81f806d54f870d%22%2C%22customerId%22%3A2987692%2C%22expiryDate%22%3A1419720080713%2C%22source%22%3A%22angularjs%22%2C%22version%22%3A%220.0.1%22%2C%22ipAddress%22%3A%22162.238.142.87%22%7D%7D; _ys_redirect=%7B%22_%22%3A%22/deposit%22%7D; AWSELB=6DE1C52F06D2FAD97948D9C525A94E7AAFA0177A1890AF978A9255D86567AFEAD96070536661C11A4B20ECD42C5B4C17AB43E4F731C70850C6CE26FC01CA0B8A74B837CA2B; i18next=en; _ys_state=%7B%22_%22%3A%7B%22isEmailVerified%22%3Atrue%2C%22isMfaVerified%22%3Atrue%7D%7D; __utma=100973971.207814275.1416969897.1418569468.1419718875.8; __utmb=100973971.15.9.1419719005981; __utmc=100973971; __utmz=100973971.1416969897.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)"
           http.headers['referer'] = "https://www.circle.com/deposit"
           http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
-          http.headers['x-customer-id'] = customer_id
-          http.headers['x-customer-session-token'] = circle_customer_session_token
+          http.headers['x-customer-id'] = "2987692"
+          http.headers['x-customer-session-token'] = "4580a0d4a5caaa35e731942dda81f806d54f870d"
         end
 
         response = curl.perform

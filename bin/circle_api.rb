@@ -171,9 +171,6 @@ puts "your account balance is $ #{account_balance_in_usd}"
 # puts 'Circle Bitcoin Address for Receiving BTC:'
 # puts circle_bitcoin_address_for_receiving
 
-def exchange
-  :circle
-end
 
 
 
