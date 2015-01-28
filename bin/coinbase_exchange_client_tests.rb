@@ -37,6 +37,16 @@ puts coinbase_exchange_sell_price
 
 
 
+####################
+# Balance
+####################
+
+balance_result = coinbase_exchange_client.balance
+
+puts balance_result
+balance_result.count == 2
+
+
 
 
 
