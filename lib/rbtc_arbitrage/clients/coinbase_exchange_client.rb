@@ -39,7 +39,17 @@ module RbtcArbitrage
       # `action` is :buy or :sell
       # Returns a Numeric type.
       def price action
-        order_book_command(action)
+        bids_asks_hash = order_book_command(action)
+
+        if action == :buy
+          #buy = asks
+          price_entries = bids_asks_hash[:asks]
+          price_entries.first.first.try(:to_f)
+        else
+          #sell = bids
+          price_entries = bids_asks_hash[:bids]
+          price_entries.second.first.try(:to_f)
+        end
       end
 
       # Transfers BTC to the address of a different
@@ -157,15 +167,10 @@ module RbtcArbitrage
         json_data = ActiveSupport::Gzip.decompress(curl.body_str)
         parsed_json = JSON.parse(json_data)
 
-        if action == :buy
-          #buy = asks
-          price_entry = parsed_json['asks'].third
-          price_entry.first.try(:to_f)
-        else
-          #sell = bids
-          price_entry = parsed_json['bids'].third
-          price_entry.first.try(:to_f)
-        end
+        {
+          bids: parsed_json['bids'],
+          asks: parsed_json['asks']
+        }
       end
 
       def products_command

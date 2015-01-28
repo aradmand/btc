@@ -43,7 +43,12 @@ puts coinbase_exchange_sell_price
 
 balance_result = coinbase_exchange_client.balance
 
-puts balance_result
+puts 'Coinbase Exchange BTC balance'
+puts balance_result.first
+
+puts 'Coinbase Exchange USD balance'
+puts balance_result.second
+
 balance_result.count == 2
 
 
