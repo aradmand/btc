@@ -101,7 +101,7 @@ puts circle_sell_price
 #   puts "Sucessfully sold #{circle_client.options[:volume]} BTC"
 # else
 #   puts "Error selling BTC"
-#   puts buy
+#   puts sell
 # end
 
 
