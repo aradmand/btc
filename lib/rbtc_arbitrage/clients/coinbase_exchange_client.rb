@@ -29,11 +29,37 @@ module RbtcArbitrage
 
       # Configures the client's API keys.
       def validate_env
-        validate_keys :coinbase_exchange_access_key, :coinbase_exchange_api_secret, :coinbase_exchange_passphrase, :coinbase_exchange_address
+        validate_keys :coinbase_exchange_access_key,
+          :coinbase_exchange_api_secret,
+          :coinbase_exchange_passphrase
+          #:coinbase_exchange_address
       end
 
       # `action` is :buy or :sell
       def trade action
+        price = price(action)
+        multiple = {
+          buy: 1,
+          sell: -1,
+        }[action]
+        adjusted_price = price + 0.001 * multiple
+
+        #for testing ... uncomment
+        # if action == :buy
+        #   adjusted_price -= 10
+        # else
+        #   adjusted_price += 10
+        # end
+
+        adjusted_price = adjusted_price.round(2)
+        amount = @options[:volume]
+
+        side = if action == :buy
+          'buy'
+        else
+          'sell'
+        end
+        #result = place_new_order_command(amount, adjusted_price, side)
       end
 
       # `action` is :buy or :sell
@@ -48,7 +74,7 @@ module RbtcArbitrage
         else
           #sell = bids
           price_entries = bids_asks_hash[:bids]
-          price_entries.second.first.try(:to_f)
+          price_entries.first.first.try(:to_f)
         end
       end
 
@@ -69,6 +95,50 @@ module RbtcArbitrage
 
       def exchange_api_url
         'https://api.exchange.coinbase.com'
+      end
+
+      def place_new_order_command(size, price, side)
+        product_id = products_command['id']
+
+        request_body = {
+          "size" => size,
+          "price" => price,
+          "side" => side,
+          "product_id" => product_id
+        }.to_json
+        content_length = request_body.length
+
+        auth_headers = authentication_headers('POST', '/orders', request_body.to_s)
+
+        api_url = "#{exchange_api_url}/orders"
+
+        path_header = "/orders"
+
+        curl = Curl::Easy.http_post(api_url, request_body) do |http|
+          http.headers['host'] = 'api.exchange.coinbase.com'
+          http.headers['method'] = 'POST'
+          http.headers['path'] = path_header
+          http.headers['scheme'] = 'https'
+          http.headers['version'] = 'HTTP/1.1'
+          http.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+          http.headers['accept-encoding'] = 'gzip,deflate,sdch'
+          http.headers['accept-language'] = 'en-US,en;q=0.8'
+          http.headers['content-length'] = content_length
+          http.headers['content-type'] = 'application/json;charset=UTF-8'
+          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+          http.headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
+          http.headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
+          http.headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
+          http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
+        end
+
+
+
+        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+        parsed_json = JSON.parse(json_data)
+
+
+
       end
 
       def accounts_command
@@ -145,7 +215,7 @@ module RbtcArbitrage
       end
 
       def order_book_command(action)
-        product_id = products_command
+        product_id = products_command['id']
         api_url = "#{exchange_api_url}/products/#{product_id}/book?level=2"
 
         path_header = "/products/#{product_id}/book?level=2"
@@ -194,9 +264,9 @@ module RbtcArbitrage
         json_data = ActiveSupport::Gzip.decompress(curl.body_str)
         parsed_json = JSON.parse(json_data)
 
-        product_id = parsed_json.map do |product|
+        btc_usd_product = parsed_json.map do |product|
           if product['id'] == 'BTC-USD'
-            product['id']
+            product
           end
         end.first
       end

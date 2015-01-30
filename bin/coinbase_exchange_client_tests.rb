@@ -14,6 +14,13 @@ coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
 
 
 ####################
+# Validate Keys
+####################
+
+coinbase_exchange_client.validate_env
+
+
+####################
 # Price
 ####################
 
@@ -51,6 +58,32 @@ puts balance_result.second
 
 balance_result.count == 2
 
+
+
+####################
+#  Trade
+#
+# Uncomment the following section to buy :volume BTC
+# and then sell :volume BTC
+##############################
+
+puts "Buying #{coinbase_exchange_client.options[:volume]} BTC"
+buy = coinbase_exchange_client.trade(:buy)
+if buy == 0
+  puts "Sucessfully bought #{coinbase_exchange_client.options[:volume]} BTC"
+else
+  puts "Error buying BTC"
+  puts buy
+end
+
+# puts "Selling #{coinbase_exchange_client.options[:volume]} BTC"
+# sell = coinbase_exchange_client.trade(:sell)
+# if sell == 0
+#   puts "Sucessfully sold #{coinbase_exchange_client.options[:volume]} BTC"
+# else
+#   puts "Error selling BTC"
+#   puts sell
+# end
 
 
 
