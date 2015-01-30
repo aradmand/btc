@@ -45,11 +45,11 @@ module RbtcArbitrage
         adjusted_price = price + 0.001 * multiple
 
         #for testing ... uncomment
-        # if action == :buy
-        #   adjusted_price -= 10
-        # else
-        #   adjusted_price += 10
-        # end
+        if action == :buy
+          adjusted_price -= 10
+        else
+          adjusted_price += 10
+        end
 
         adjusted_price = adjusted_price.round(2)
         amount = @options[:volume]
@@ -59,7 +59,7 @@ module RbtcArbitrage
         else
           'sell'
         end
-        #result = place_new_order_command(amount, adjusted_price, side)
+        result = place_new_order_command(amount, adjusted_price, side)
       end
 
       # `action` is :buy or :sell
@@ -98,6 +98,7 @@ module RbtcArbitrage
       end
 
       def place_new_order_command(size, price, side)
+        binding.pry
         product_id = products_command['id']
 
         request_body = {
@@ -105,38 +106,65 @@ module RbtcArbitrage
           "price" => price,
           "side" => side,
           "product_id" => product_id
-        }.to_json
-        content_length = request_body.length
+        }
 
-        auth_headers = authentication_headers('POST', '/orders', request_body.to_s)
+        content_length = request_body.to_json.length
+
+        auth_headers = authentication_headers('POST', '/orders', request_body.to_json.to_s)
 
         api_url = "#{exchange_api_url}/orders"
 
         path_header = "/orders"
 
-        curl = Curl::Easy.http_post(api_url, request_body) do |http|
-          http.headers['host'] = 'api.exchange.coinbase.com'
-          http.headers['method'] = 'POST'
-          http.headers['path'] = path_header
-          http.headers['scheme'] = 'https'
-          http.headers['version'] = 'HTTP/1.1'
-          http.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-          http.headers['accept-encoding'] = 'gzip,deflate,sdch'
-          http.headers['accept-language'] = 'en-US,en;q=0.8'
-          http.headers['content-length'] = content_length
-          http.headers['content-type'] = 'application/json;charset=UTF-8'
-          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
-          http.headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
-          http.headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
-          http.headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
-          http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
-        end
+        curl = Curl::Easy.new
+        headers = {}
+        headers['host'] = 'api.exchange.coinbase.com'
+        headers['method'] = 'POST'
+        headers['path'] = path_header
+        headers['scheme'] = 'https'
+        headers['version'] = 'HTTP/1.1'
+        headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        headers['accept-encoding'] = 'gzip,deflate,sdch'
+        headers['accept-language'] = 'en-US,en;q=0.8'
+        headers['content-length'] = content_length
+        headers['content-type'] = 'application/json;charset=UTF-8'
+        headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+        headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
+        headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
+        headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
+        headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
+
+        curl.url = api_url
+        curl.headers = headers
+        curl.verbose = true
+        curl.http_post(request_body.to_json)
 
 
+
+        # curl = Curl::Easy.http_post(api_url, request_body.to_json) do |http|
+        #   http.headers['host'] = 'api.exchange.coinbase.com'
+        #   http.headers['method'] = 'POST'
+        #   http.headers['path'] = path_header
+        #   http.headers['scheme'] = 'https'
+        #   http.headers['version'] = 'HTTP/1.1'
+        #   http.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        #   http.headers['accept-encoding'] = 'gzip,deflate,sdch'
+        #   http.headers['accept-language'] = 'en-US,en;q=0.8'
+        #   http.headers['content-length'] = content_length
+        #   http.headers['content-type'] = 'application/json;charset=UTF-8'
+        #   http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+        #   http.headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
+        #   http.headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
+        #   http.headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
+        #   http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
+        # end
+
+binding.pry
 
         json_data = ActiveSupport::Gzip.decompress(curl.body_str)
         parsed_json = JSON.parse(json_data)
 
+binding.pry
 
 
       end
