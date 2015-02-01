@@ -110,7 +110,11 @@ module RbtcArbitrage
 
         content_length = request_body.to_json.length
 
-        auth_headers = authentication_headers('POST', '/orders', request_body.to_json.to_s)
+        url = 'https://api.exchange.coinbase.com/orders'
+
+        auth_headers = signature(url, request_body.to_json.to_s, nil, 'POST')
+
+#        auth_headers = authentication_headers('POST', '/orders', request_body.to_json.to_s)
 
         api_url = "#{exchange_api_url}/orders"
 
@@ -126,13 +130,17 @@ module RbtcArbitrage
         headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
         headers['accept-encoding'] = 'gzip,deflate,sdch'
         headers['accept-language'] = 'en-US,en;q=0.8'
-        headers['content-length'] = content_length
-        headers['content-type'] = 'application/json;charset=UTF-8'
+        #headers['content-length'] = content_length
+        headers['content-type'] = 'application/json'
         headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
         headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
         headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
         headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
         headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
+
+
+        #str = "-H \"CB-ACCESS-PASSPHRASE: #{auth_headers[:cb_access_passphrase]}\" -H \"CB-ACCESS-TIMESTAMP: #{auth_headers[:cb_access_timestamp]}\" -H "
+
 
         curl.url = api_url
         curl.headers = headers
@@ -214,6 +222,27 @@ binding.pry
         }
       end
 
+      def signature(request_url='', body='', timestamp=nil, method='GET')
+        api_secret = ENV['COINBASE_EXCHANGE_API_SECRET']
+
+        body = body.to_json if body.is_a?(Hash)
+        timestamp = Time.now.to_i if !timestamp
+
+        what = "#{timestamp}#{method}#{request_url}#{body}";
+
+        # create a sha256 hmac with the secret
+        secret = Base64.decode64(api_secret)
+        hash  = OpenSSL::HMAC.digest('sha256', secret, what)
+        cb_access_sign = Base64.encode64(hash)
+
+        {
+          cb_access_timestamp: timestamp,
+          cb_access_key: ENV['COINBASE_EXCHANGE_ACCESS_KEY'],
+          cb_access_sign: cb_access_sign,
+          cb_access_passphrase: ENV['COINBASE_EXCHANGE_PASSPHRASE']
+        }
+      end
+
       # method must be CAPITALIZED and should be POST, GET ... etc
       # request_url should be the url called (i.e. '/orders', '/account' ... etc)
       # body is the JSON body converted to a string
@@ -222,7 +251,7 @@ binding.pry
         timestamp = Time.now.to_i
 
         # create prehash string
-        prehash_string = timestamp.to_s + method + request_url + body
+        prehash_string = "#{timestamp.to_s}#{method}#{request_url}#{body}"
 
         # decode base64 secret
         decoded_api_secret = Base64.decode64(api_secret)
