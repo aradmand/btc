@@ -12,9 +12,9 @@ MIN_PERCENT_PROFIT = 0.3
 
 
 def set_trading_parameters
-  @buyer = ENV['BTC_BUYER'].try(:to_sym) || :bitstamp
-  @seller = ENV['BTC_SELLER'].try(:to_sym) || :circle
-  @volume = 0.1
+  @buyer = ENV['BTC_BUYER'].try(:to_sym) || :campbx
+  @seller = ENV['BTC_SELLER'].try(:to_sym) || :coinbase_exchange
+  @volume = 0.011
 end
 
 def trade(buy_exchange, sell_exchange)
@@ -99,7 +99,3 @@ while enabled == true
   sleep(1.0 / 3.0)
   profit = trade(exchange_1, exchange_2)
 end
-
-
-
-
