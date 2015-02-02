@@ -98,7 +98,6 @@ module RbtcArbitrage
       end
 
       def place_new_order_command(size, price, side)
-        binding.pry
         product_id = products_command['id']
 
         request_body = {
@@ -108,13 +107,7 @@ module RbtcArbitrage
           "product_id" => product_id
         }
 
-        content_length = request_body.to_json.length
-
-        url = 'https://api.exchange.coinbase.com/orders'
-
-        auth_headers = signature(url, request_body.to_json.to_s, nil, 'POST')
-
-#        auth_headers = authentication_headers('POST', '/orders', request_body.to_json.to_s)
+        auth_headers = signature('/orders', request_body, nil, 'POST')
 
         api_url = "#{exchange_api_url}/orders"
 
@@ -130,7 +123,6 @@ module RbtcArbitrage
         headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
         headers['accept-encoding'] = 'gzip,deflate,sdch'
         headers['accept-language'] = 'en-US,en;q=0.8'
-        #headers['content-length'] = content_length
         headers['content-type'] = 'application/json'
         headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
         headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
@@ -138,47 +130,30 @@ module RbtcArbitrage
         headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
         headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
 
-
-        #str = "-H \"CB-ACCESS-PASSPHRASE: #{auth_headers[:cb_access_passphrase]}\" -H \"CB-ACCESS-TIMESTAMP: #{auth_headers[:cb_access_timestamp]}\" -H "
-
-
         curl.url = api_url
         curl.headers = headers
         curl.verbose = true
+
         curl.http_post(request_body.to_json)
 
-
-
-        # curl = Curl::Easy.http_post(api_url, request_body.to_json) do |http|
-        #   http.headers['host'] = 'api.exchange.coinbase.com'
-        #   http.headers['method'] = 'POST'
-        #   http.headers['path'] = path_header
-        #   http.headers['scheme'] = 'https'
-        #   http.headers['version'] = 'HTTP/1.1'
-        #   http.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-        #   http.headers['accept-encoding'] = 'gzip,deflate,sdch'
-        #   http.headers['accept-language'] = 'en-US,en;q=0.8'
-        #   http.headers['content-length'] = content_length
-        #   http.headers['content-type'] = 'application/json;charset=UTF-8'
-        #   http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
-        #   http.headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
-        #   http.headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
-        #   http.headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
-        #   http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
-        # end
-
-binding.pry
-
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
-
-binding.pry
-
-
+        begin
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+          order_id = parsed_json['id']
+          puts 'Order Id:'
+          puts order_id
+          puts 'Order Details:'
+          puts parsed_json
+          return order_id
+        rescue
+          puts "Error while reading response:"
+          puts curl.body_str
+          return nil
+        end
       end
 
       def accounts_command
-        auth_headers = authentication_headers('GET', '/accounts')
+        auth_headers = signature('/accounts', '', nil, 'GET')
 
         api_url = "#{exchange_api_url}/accounts"
 
@@ -222,6 +197,9 @@ binding.pry
         }
       end
 
+      # method must be CAPITALIZED and should be POST, GET ... etc
+      # request_url should be the url called (i.e. '/orders', '/account' ... etc)
+      # body is the JSON body
       def signature(request_url='', body='', timestamp=nil, method='GET')
         api_secret = ENV['COINBASE_EXCHANGE_API_SECRET']
 
@@ -238,35 +216,7 @@ binding.pry
         {
           cb_access_timestamp: timestamp,
           cb_access_key: ENV['COINBASE_EXCHANGE_ACCESS_KEY'],
-          cb_access_sign: cb_access_sign,
-          cb_access_passphrase: ENV['COINBASE_EXCHANGE_PASSPHRASE']
-        }
-      end
-
-      # method must be CAPITALIZED and should be POST, GET ... etc
-      # request_url should be the url called (i.e. '/orders', '/account' ... etc)
-      # body is the JSON body converted to a string
-      def authentication_headers(method, request_url, body = "")
-        api_secret = ENV['COINBASE_EXCHANGE_API_SECRET']
-        timestamp = Time.now.to_i
-
-        # create prehash string
-        prehash_string = "#{timestamp.to_s}#{method}#{request_url}#{body}"
-
-        # decode base64 secret
-        decoded_api_secret = Base64.decode64(api_secret)
-
-        # create a sha256 hmac with the secret
-        digest = OpenSSL::Digest::Digest.new("sha256")
-        hmac = OpenSSL::HMAC.digest(digest, decoded_api_secret, prehash_string)
-
-        # base64 encode the result
-        cb_access_sign = Base64.encode64(hmac)
-
-        {
-          cb_access_timestamp: timestamp,
-          cb_access_key: ENV['COINBASE_EXCHANGE_ACCESS_KEY'],
-          cb_access_sign: cb_access_sign,
+          cb_access_sign: cb_access_sign.strip,
           cb_access_passphrase: ENV['COINBASE_EXCHANGE_PASSPHRASE']
         }
       end

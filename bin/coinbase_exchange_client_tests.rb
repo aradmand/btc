@@ -67,14 +67,14 @@ balance_result.count == 2
 # and then sell :volume BTC
 ##############################
 
-puts "Buying #{coinbase_exchange_client.options[:volume]} BTC"
-buy = coinbase_exchange_client.trade(:buy)
-if buy == 0
-  puts "Sucessfully bought #{coinbase_exchange_client.options[:volume]} BTC"
-else
-  puts "Error buying BTC"
-  puts buy
-end
+# puts "Buying #{coinbase_exchange_client.options[:volume]} BTC"
+# buy = coinbase_exchange_client.trade(:buy)
+# if buy == 0
+#   puts "Sucessfully bought #{coinbase_exchange_client.options[:volume]} BTC"
+# else
+#   puts "Error buying BTC"
+#   puts buy
+# end
 
 # puts "Selling #{coinbase_exchange_client.options[:volume]} BTC"
 # sell = coinbase_exchange_client.trade(:sell)
