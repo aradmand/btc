@@ -20,7 +20,12 @@ module RbtcArbitrage
           warning << "when you trade live."
           logger.warn warning
         end
-        @balance ||= [max_float, max_float]
+        @balance ||= begin
+          btc_balance = interface.send("balance".to_sym).to_d.to_s.to_f
+          [btc_balance, max_float]
+        rescue Exception => e
+          [0, max_float]
+        end
       end
 
       # Configures the client's API keys.
