@@ -51,6 +51,17 @@ module RbtcArbitrage
         interface.send_money client.address, @options[:volume]
       end
 
+      def account(account_name)
+        accounts_response = interface.send("accounts".to_sym)
+        desired_account = accounts_response['accounts'].map do |account|
+          if account['name'] == account_name
+            account
+          end
+        end
+
+        desired_account.compact.try(:first)
+      end
+
       def interface
         secret = ENV['COINBASE_SECRET'] || ''
         @interface ||= Coinbase::Client.new(ENV['COINBASE_KEY'], secret)

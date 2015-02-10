@@ -90,6 +90,15 @@ module RbtcArbitrage
         #
         # 2.) Transfer BTC from the BTC Wallet account to the specified
         # client address.
+
+        # First, transfer BTC from CoinbaseExchange BTC acct to Bitcoin Wallet
+        coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new(self.options)
+        coinbase_account = coinbase_client.account('My Wallet')
+
+        transfer_response = transfer_funds_command('withdraw', @options[:volume], coinbase_account['id'])
+
+        # Second, transfer BTC from Coinbase BTC Wallet to the desired client
+        coinbase_client.transfer(client)
       end
 
       # If there is an API method to fetch your
@@ -105,6 +114,61 @@ module RbtcArbitrage
 
       def exchange_api_url
         'https://api.exchange.coinbase.com'
+      end
+
+      # transfer_type = 'deposit' or 'withdraw'
+      # amount = the amount to either deposit or withdraw (10.32)
+      # account_id = coinbase account id
+      #
+      # For Reference:
+      # ‘Withdraw’ = Exchange → Coinbase
+      # ‘Deposit’ = Coinbase → Exchange
+      def transfer_funds_command(transfer_type, amount, account_id)
+        request_body = {
+          "type" => transfer_type,
+          "amount" => amount,
+          "coinbase_account_id" => account_id
+        }
+
+        auth_headers = signature('/transfers', request_body, nil, 'POST')
+
+        api_url = "#{exchange_api_url}/transfers"
+        path_header = "/transfers"
+
+        curl = Curl::Easy.new
+        headers = {}
+        headers['host'] = 'api.exchange.coinbase.com'
+        headers['method'] = 'POST'
+        headers['path'] = path_header
+        headers['scheme'] = 'https'
+        headers['version'] = 'HTTP/1.1'
+        headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+        headers['accept-encoding'] = 'gzip,deflate,sdch'
+        headers['accept-language'] = 'en-US,en;q=0.8'
+        headers['content-type'] = 'application/json'
+        headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+        headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
+        headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
+        headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
+        headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
+
+        curl.url = api_url
+        curl.headers = headers
+        curl.verbose = true
+
+        curl.http_post(request_body.to_json)
+
+        begin
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+          id = parsed_json['id']
+          ledger_id = parsed_json['ledger_id']
+          {'id' => id, 'ledger_id' => ledger_id}
+        rescue
+          puts "Error while reading response in transfer_funds_command:"
+          puts curl.body_str
+          return nil
+        end
       end
 
       def place_new_order_command(size, price, side)
