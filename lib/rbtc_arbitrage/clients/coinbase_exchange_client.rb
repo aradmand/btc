@@ -29,10 +29,12 @@ module RbtcArbitrage
 
       # Configures the client's API keys.
       def validate_env
+        coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
+        coinbase_client.validate_env
+
         validate_keys :coinbase_exchange_access_key,
           :coinbase_exchange_api_secret,
           :coinbase_exchange_passphrase
-          #:coinbase_exchange_address
       end
 
       # `action` is :buy or :sell
@@ -45,6 +47,7 @@ module RbtcArbitrage
         adjusted_price = price + 0.001 * multiple
 
         #for testing ... uncomment
+        puts "FOR TESTING!!! THERE IS TESTING CODE IN HERE AFFECTING THE PRICE OF ORDERS!!!!"
         if action == :buy
           adjusted_price -= 10
         else
@@ -81,6 +84,12 @@ module RbtcArbitrage
       # Transfers BTC to the address of a different
       # exchange.
       def transfer client
+        # With CoinbaseExchange, this is a 2-step process:
+        # 1.) Transfer BTC from CoinbaseExchange BTC account to
+        # Bitcoin.com's BTC Wallet
+        #
+        # 2.) Transfer BTC from the BTC Wallet account to the specified
+        # client address.
       end
 
       # If there is an API method to fetch your
@@ -88,7 +97,8 @@ module RbtcArbitrage
       # remove this method and set the ENV
       # variable [this-exchange-name-in-caps]_ADDRESS
       def address
-        #This is best left as an environment variable.
+        coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
+        coinbase_client.address
       end
 
       private

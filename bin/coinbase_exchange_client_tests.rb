@@ -61,6 +61,31 @@ balance_result.count == 2
 
 
 ####################
+# Address
+####################
+
+coinbase_exchange_address = coinbase_exchange_client.address
+puts 'Address for Coinbase (Not Coinbase Exchange)'
+puts coinbase_exchange_address
+
+
+####################
+# Transfer btc
+####################
+
+circle_client = RbtcArbitrage::Clients::CircleClient.new
+
+coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
+
+# Uncomment the following line to transfer bitcoin to coinbase
+# circle_client.transfer(coinbase_client)
+
+
+
+
+
+
+####################
 #  Trade
 #
 # Uncomment the following section to buy :volume BTC
