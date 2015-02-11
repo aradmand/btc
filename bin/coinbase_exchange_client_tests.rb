@@ -69,6 +69,12 @@ puts 'Address for Coinbase (Not Coinbase Exchange)'
 puts coinbase_exchange_address
 
 
+# coinbase_exchange_address = coinbase_exchange_client.address(true)
+# puts 'Address for Coinbase (Not Coinbase Exchange) -- transferring BTC from Coinbase to Exchange'
+# puts coinbase_exchange_address
+
+
+
 ####################
 # Transfer btc
 ####################
@@ -81,7 +87,7 @@ coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
 #coinbase_exchange_client.transfer(circle_client)
 
 # Uncomment the following line to transfer bitcoin from circle back to coinbase
-circle_client.transfer(coinbase_client)
+#circle_client.transfer(coinbase_client)
 
 
 
