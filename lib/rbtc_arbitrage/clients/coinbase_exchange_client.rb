@@ -98,7 +98,7 @@ module RbtcArbitrage
         transfer_response = transfer_funds_command('withdraw', @options[:volume], coinbase_account['id'])
 
         # Second, transfer BTC from Coinbase BTC Wallet to the desired client
-        coinbase_client.transfer(client)
+        coinbase_transfer_response = coinbase_client.transfer(client)
       end
 
       # If there is an API method to fetch your
@@ -163,6 +163,11 @@ module RbtcArbitrage
           parsed_json = JSON.parse(json_data)
           id = parsed_json['id']
           ledger_id = parsed_json['ledger_id']
+          if id.blank? || ledger_id.blank?
+            puts 'Error within transfer_funds_command. Response:'
+            puts json_data
+          end
+
           {'id' => id, 'ledger_id' => ledger_id}
         rescue
           puts "Error while reading response in transfer_funds_command:"
