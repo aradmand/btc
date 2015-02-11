@@ -37,7 +37,12 @@ module RbtcArbitrage
       end
 
       def transfer client
-        interface.send_btc client.address, @options[:volume]
+        if client.exchange == :coinbase_exchange
+          client_address = client.address(true)
+          interface.send_btc client_address, @options[:volume]
+        else
+          interface.send_btc client.address, @options[:volume]
+        end
       end
 
       def address

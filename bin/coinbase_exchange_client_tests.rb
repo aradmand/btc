@@ -84,7 +84,7 @@ circle_client = RbtcArbitrage::Clients::CircleClient.new
 coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
 
 # Uncomment the following line to transfer bitcoin to coinbase
-#coinbase_exchange_client.transfer(circle_client)
+coinbase_exchange_client.transfer(circle_client)
 
 # Uncomment the following line to transfer bitcoin from circle back to coinbase
 #circle_client.transfer(coinbase_client)
