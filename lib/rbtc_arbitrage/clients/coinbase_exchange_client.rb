@@ -45,16 +45,8 @@ module RbtcArbitrage
           sell: -1,
         }[action]
         adjusted_price = price + 0.001 * multiple
-
-        #for testing ... uncomment
-        puts "FOR TESTING!!! THERE IS TESTING CODE IN HERE AFFECTING THE PRICE OF ORDERS!!!!"
-        if action == :buy
-          adjusted_price -= 10
-        else
-          adjusted_price += 10
-        end
-
         adjusted_price = adjusted_price.round(2)
+
         amount = @options[:volume]
 
         side = if action == :buy
