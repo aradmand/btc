@@ -33,7 +33,21 @@ module RbtcArbitrage
           buy: "Best Ask",
           sell: "Best Bid",
         }[action]
+
+        price_multiple = 0
+
+        # TESTING - UNCOMMNET
+        # puts "THERE IS TESTING CODE EFFECTING THE BUY / SELL PRICE"
+
+        # price_multiple = if action == "Best Ask"
+        #   -10
+        # else
+        #   10
+        # end
+
         @price = interface.xticker[action].to_f
+
+        @price + price_multiple
       end
 
       def transfer client
