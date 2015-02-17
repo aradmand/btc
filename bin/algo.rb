@@ -15,6 +15,7 @@ def set_trading_parameters
   @buyer = ENV['BTC_BUYER'].try(:to_sym) || :campbx
   @seller = ENV['BTC_SELLER'].try(:to_sym) || :coinbase_exchange
   @volume = 0.1
+  @live = ARGV[0] == '--live'
 end
 
 def trade(buy_exchange, sell_exchange)
@@ -31,6 +32,16 @@ def trade(buy_exchange, sell_exchange)
     puts "[Timestamp - #{start_time}]"
 
     options = { buyer: buy_exchange, seller: sell_exchange, volume: @volume, cutoff: percent, verbose: true}
+
+    ####### This turns on live trading #####
+    if @live == true
+      options.merge!({live: true})
+    end
+    if options.has_key?(:live)
+      puts '*** LIVE TRADING MODE IS SET TO TRUE! ***'
+    end
+    ########################################
+
     rbtc_arbitrage = RbtcArbitrage::Trader.new(options)
 
     command = "rbtc --seller #{sell_exchange} --buyer #{buy_exchange} --volume #{@volume} --cutoff #{percent}"
@@ -98,4 +109,6 @@ while enabled == true
   end
   sleep(1.0 / 3.0)
   profit = trade(exchange_1, exchange_2)
+
+  enabled = false
 end
