@@ -8,14 +8,17 @@ require 'rbtc_arbitrage'
 enabled = true
 profit = 0
 
-MIN_PERCENT_PROFIT = 0.3
+MIN_PERCENT_PROFIT = 0.5
 
 
 def set_trading_parameters
   @buyer = ENV['BTC_BUYER'].try(:to_sym) || :campbx
   @seller = ENV['BTC_SELLER'].try(:to_sym) || :coinbase_exchange
   @volume = 0.1
-  @live = ARGV[0] == '--live'
+
+  args_hash = Hash[*ARGV]
+  @live = args_hash['--live'] == 'true'
+  @step = args_hash['--step'] == 'true'
 end
 
 def trade(buy_exchange, sell_exchange)
@@ -110,5 +113,8 @@ while enabled == true
   sleep(1.0 / 3.0)
   profit = trade(exchange_1, exchange_2)
 
-  enabled = false
+  if @step
+    binding.pry
+  end
+  #enabled = false
 end
