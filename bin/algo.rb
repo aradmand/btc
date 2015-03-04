@@ -24,7 +24,7 @@ end
 def trade(buy_exchange, sell_exchange)
   begin
     percent = MIN_PERCENT_PROFIT
-    sleep(2.0)
+    sleep(1.0)
     puts
     puts
     puts
@@ -110,7 +110,7 @@ while enabled == true
   else
     exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
   end
-  sleep(1.0 / 3.0)
+
   profit = trade(exchange_1, exchange_2)
 
   if @step
