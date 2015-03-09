@@ -34,6 +34,14 @@ puts 'campbx_sell_price'
 puts campbx_sell_price
 
 
+####################
+# Orders (list open orders)
+####################
+
+open_orders = campbx_client.open_orders
+puts "#{open_orders.size} Open Orders:"
+puts open_orders
+
 
 ####################
 # Balance

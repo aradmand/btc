@@ -62,6 +62,21 @@ module RbtcArbitrage
       def address
         @address ||= interface.get_btc_address["Success"]
       end
+
+      def open_orders
+        orders = interface.my_orders
+        sell_orders = orders['Sell']
+        if sell_orders.length == 1 && sell_orders.first['Info'].present?
+          sell_orders = []
+        end
+
+        buy_orders = orders['Buy']
+        if buy_orders.length == 1 && buy_orders.first['Info'].present?
+          buy_orders = []
+        end
+
+        buy_orders + sell_orders
+      end
     end
   end
 end
