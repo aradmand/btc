@@ -76,13 +76,13 @@ module RbtcArbitrage
       end
 
       def open_orders
-        orders = interface.my_orders
-        sell_orders = orders['Sell']
+        @orders ||= interface.my_orders
+        sell_orders = @orders['Sell']
         if sell_orders.length == 1 && sell_orders.first['Info'].present?
           sell_orders = []
         end
 
-        buy_orders = orders['Buy']
+        buy_orders = @orders['Buy']
         if buy_orders.length == 1 && buy_orders.first['Info'].present?
           buy_orders = []
         end
