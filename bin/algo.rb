@@ -14,7 +14,7 @@ MIN_PERCENT_PROFIT = 0.5
 def set_trading_parameters
   @buyer = ENV['BTC_BUYER'].try(:to_sym) || :campbx
   @seller = ENV['BTC_SELLER'].try(:to_sym) || :coinbase_exchange
-  @volume = 0.1
+  @volume = 0.01
 
   args_hash = Hash[*ARGV]
   @live = args_hash['--live'] == 'true'
@@ -92,7 +92,7 @@ def trade(buy_exchange, sell_exchange)
     puts "************"
   end
 
-  profit_dollars
+  [profit_dollars, profit_percent]
 end
 
 def flip_exchanges(exchange_a, exchange_b)
@@ -106,14 +106,14 @@ exchange_2 = @seller
 while enabled == true
   set_trading_parameters
   if profit > 0
-    profit = trade(exchange_1, exchange_2)
+    profit, profit_percent = trade(exchange_1, exchange_2)
   else
     exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
   end
 
-  profit = trade(exchange_1, exchange_2)
+  profit, profit_percent = trade(exchange_1, exchange_2)
 
-  if @step
+  if @step && profit_percent >= MIN_PERCENT_PROFIT
     binding.pry
   end
   #enabled = false
