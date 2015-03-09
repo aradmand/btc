@@ -1,3 +1,15 @@
+# Gamma Algo
+#
+# Features of this strategey include:
+# => Before trading, the algo will check to see if any open orders
+#  exist on either exchange.  If so, the algo will pause and not continue
+#  trading until there are 0 open orders.
+#
+# => The 'volume' quantity of the selling exchange will be matched to the current
+#  quantity of the top of book 'Bid' order on the sell exchange (if the order quantity
+#  is less than the volume of BTC we have on hand at the exchange).  This should help
+#  guard against orders sitting open due to non-matches for AON
+
 require 'date'
 require 'pry'
 
