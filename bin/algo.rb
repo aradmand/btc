@@ -46,6 +46,13 @@ def trade(buy_exchange, sell_exchange)
     puts "#=================="
     puts "[Timestamp - #{start_time}]"
 
+    # If CampBx is the sell exchange, try to match the quantity of
+    # top of book to increase the chances of a match in the event of
+    # AON order types.
+    if sell_exchange == :campbx
+
+    end
+
     options = { buyer: buy_exchange, seller: sell_exchange, volume: @volume, cutoff: percent, verbose: true}
 
     ####### This turns on live trading #####
@@ -59,7 +66,27 @@ def trade(buy_exchange, sell_exchange)
 
     rbtc_arbitrage = RbtcArbitrage::Trader.new(options)
 
-    command = "rbtc --seller #{sell_exchange} --buyer #{buy_exchange} --volume #{@volume} --cutoff #{percent}"
+
+    # If CampBx is the sell exchange, try to match the quantity of
+    # top of book to increase the chances of a match in the event of
+    # AON order types.
+    if sell_exchange == :campbx
+      buyer_btc_balance, buyer_usd_balance = rbtc_arbitrage.get_buyer_balance
+      seller_btc_balance, seller_usd_balance = rbtc_arbitrage.get_seller_balance
+
+      top_of_book_quantity = rbtc_arbitrage.sell_client.top_of_book_quantity(:sell)
+      if top_of_book_quantity &&
+        top_of_book_quantity <= buyer_btc_balance &&
+        top_of_book_quantity <= seller_btc_balance
+
+        new_volume = top_of_book_quantity
+        options.merge!({volume: new_volume})
+
+        rbtc_arbitrage = RbtcArbitrage::Trader.new(options)
+      end
+    end
+
+    command = "rbtc --seller #{options[:seller]} --buyer #{options[:buyer]} --volume #{options[:volume]} --cutoff #{options[:cutoff]}"
 
     puts "rbtc_arbitrage command:"
     puts command

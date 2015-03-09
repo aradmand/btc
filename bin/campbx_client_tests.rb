@@ -34,6 +34,21 @@ puts 'campbx_sell_price'
 puts campbx_sell_price
 
 
+
+####################
+# Order Book
+####################
+
+order_book = campbx_client.order_book
+puts order_book
+
+puts 'Top of Book (:sell): '
+puts campbx_client.top_of_book_quantity(:sell)
+
+puts 'Top of Book (:buy): '
+puts campbx_client.top_of_book_quantity(:buy)
+
+
 ####################
 # Orders (list open orders)
 ####################

@@ -63,6 +63,18 @@ module RbtcArbitrage
         @address ||= interface.get_btc_address["Success"]
       end
 
+      def top_of_book_quantity(side)
+        if side == :sell
+          order_book['Bids'].first.try(:second)
+        else
+          order_book['Asks'].first.try(:second)
+        end
+      end
+
+      def order_book
+        @order_book ||= interface.xdepth
+      end
+
       def open_orders
         orders = interface.my_orders
         sell_orders = orders['Sell']
