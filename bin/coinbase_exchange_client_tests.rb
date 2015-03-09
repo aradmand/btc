@@ -43,6 +43,13 @@ puts 'coinbase_exchange_sell_price'
 puts coinbase_exchange_sell_price
 
 
+####################
+# Orders (list open orders)
+####################
+
+open_orders = coinbase_exchange_client.open_orders
+puts "#{open_orders.size} Open Orders:"
+puts open_orders
 
 ####################
 # Balance

@@ -111,6 +111,10 @@ module RbtcArbitrage
         coinbase_client_address
       end
 
+      def open_orders
+        orders_command
+      end
+
       private
 
       def exchange_api_url
@@ -229,6 +233,40 @@ module RbtcArbitrage
           puts "Error while reading response:"
           puts curl.body_str
           return nil
+        end
+      end
+
+      def orders_command
+        auth_headers = signature('/orders', '', nil, 'GET')
+
+        api_url = "#{exchange_api_url}/orders"
+
+        path_header = "/orders"
+
+        curl = Curl::Easy.new(api_url) do |http|
+          http.headers['host'] = 'api.exchange.coinbase.com'
+          http.headers['method'] = 'GET'
+          http.headers['path'] = path_header
+          http.headers['scheme'] = 'https'
+          http.headers['version'] = 'HTTP/1.1'
+          http.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+          http.headers['accept-encoding'] = 'gzip,deflate,sdch'
+          http.headers['accept-language'] = 'en-US,en;q=0.8'
+          http.headers['content-type'] = 'application/json;charset=UTF-8'
+          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+          http.headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
+          http.headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
+          http.headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
+          http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
+        end
+
+        response = curl.perform
+
+        if curl.body_str.length < 5
+          parsed_json = JSON.parse(curl.body_str)
+        else
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
         end
       end
 
