@@ -104,11 +104,16 @@ def trade(buy_exchange, sell_exchange)
     puts "************"
   end
 
-  [profit_dollars, profit_percent]
+  [profit_dollars, profit_percent, rbtc_arbitrage]
 end
 
 def flip_exchanges(exchange_a, exchange_b)
   [exchange_b, exchange_a]
+end
+
+def no_open_orders?(exchange_a, exchange_b)
+  exchange_a.open_orders.size == 0 &&
+    exchange_b.open_orders.size == 0
 end
 
 set_trading_parameters
@@ -123,10 +128,19 @@ while enabled == true
     exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
   end
 
-  profit, profit_percent = trade(exchange_1, exchange_2)
+  profit, profit_percent, rbtc_arbitrage = trade(exchange_1, exchange_2)
 
   if @step && profit_percent >= MIN_PERCENT_PROFIT
     binding.pry
   end
+
+  while profit_percent >= MIN_PERCENT_PROFIT &&
+    no_open_orders?(rbtc_arbitrage.buy_client, rbtc_arbitrage.sell_client) == false
+
+    open_order_sleep = 10.0
+    puts '*** Open orders detected on exchanges! Re-checking in #{open_order_sleep} seconds. ***'
+    sleep(open_order_sleep)
+  end
+
   #enabled = false
 end
