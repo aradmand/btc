@@ -21,6 +21,7 @@ enabled = true
 profit = 0
 
 MIN_PERCENT_PROFIT = 0.5
+MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.25
 
 
 def set_trading_parameters
@@ -77,7 +78,8 @@ def trade(buy_exchange, sell_exchange)
       top_of_book_quantity = rbtc_arbitrage.sell_client.top_of_book_quantity(:sell)
       if top_of_book_quantity &&
         top_of_book_quantity <= buyer_btc_balance &&
-        top_of_book_quantity <= seller_btc_balance
+        top_of_book_quantity <= seller_btc_balance &&
+        top_of_book_quantity <= MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE
 
         new_volume = top_of_book_quantity
         options.merge!({volume: new_volume})
