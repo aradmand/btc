@@ -167,7 +167,7 @@ while enabled == true
     no_open_orders?(rbtc_arbitrage.buy_client, rbtc_arbitrage.sell_client) == false
 
     open_order_sleep = 10.0
-    puts '*** Open orders detected on exchanges! Re-checking in #{open_order_sleep} seconds. ***'
+    puts "*** Open orders detected on exchanges! Re-checking in #{open_order_sleep} seconds. ***"
     sleep(open_order_sleep)
   end
 
