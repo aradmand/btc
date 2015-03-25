@@ -20,14 +20,14 @@ require 'rbtc_arbitrage'
 enabled = true
 profit = 0
 
-MIN_PERCENT_PROFIT = 0.5
+MIN_PERCENT_PROFIT = 1
 MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.25
 
 
 def set_trading_parameters
   @buyer = ENV['BTC_BUYER'].try(:to_sym) || :campbx
   @seller = ENV['BTC_SELLER'].try(:to_sym) || :coinbase_exchange
-  @volume = 0.01
+  @volume = 0.1
 
   args_hash = Hash[*ARGV]
   @live = args_hash['--live'] == 'true'
