@@ -20,8 +20,9 @@ module RbtcArbitrage
       # The first element is the balance in BTC;
       # The second is in USD.
       def balance
+        return @balance if @balance
         balances = accounts_command
-        [balances[:btc_balance], balances[:usd_balance]]
+        @balance = [balances[:btc_balance], balances[:usd_balance]]
       end
 
       def interface
@@ -60,9 +61,10 @@ module RbtcArbitrage
       # `action` is :buy or :sell
       # Returns a Numeric type.
       def price action
+        return @price if @price
         bids_asks_hash = order_book_command(action)
 
-        if action == :buy
+        @price = if action == :buy
           #buy = asks
           price_entries = bids_asks_hash[:asks]
           price_entries.first.first.try(:to_f)
@@ -98,21 +100,24 @@ module RbtcArbitrage
       # remove this method and set the ENV
       # variable [this-exchange-name-in-caps]_ADDRESS
       def address(transfer_to_exchange = false)
+        return @coinbase_client_address if @coinbase_client_address
+
         # First get the address of the coinbase wallet
         coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
-        coinbase_client_address = coinbase_client.address
+        @coinbase_client_address = coinbase_client.address
 
         # Second, initiate a transfer from Coinbase to CoinbaseExchange
-        if coinbase_client_address.present? && transfer_to_exchange
+        if @coinbase_client_address.present? && transfer_to_exchange
           coinbase_account = coinbase_client.account('My Wallet')
           transfer_response = transfer_funds_command('deposit', @options[:volume], coinbase_account['id'])
         end
 
-        coinbase_client_address
+        @coinbase_client_address
       end
 
       def open_orders
-        orders_command
+        return @open_orders if @open_orders
+        @open_orders = orders_command
       end
 
       private
