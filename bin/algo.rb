@@ -20,8 +20,8 @@ require 'rbtc_arbitrage'
 enabled = true
 profit = 0
 
-MIN_PERCENT_PROFIT = 1
-MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.25
+MIN_PERCENT_PROFIT = 1.5
+MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 
 
 def set_trading_parameters

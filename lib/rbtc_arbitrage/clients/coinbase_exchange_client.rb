@@ -16,6 +16,10 @@ module RbtcArbitrage
         :coinbase_exchange
       end
 
+      def exchange_fee
+        0.0025
+      end
+
       # Returns an array of Floats.
       # The first element is the balance in BTC;
       # The second is in USD.

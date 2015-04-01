@@ -39,6 +39,10 @@ module RbtcArbitrage
       @options[:logger]
     end
 
+    def exchange_fee
+      0
+    end
+
     private
 
     def set_key config, key, default

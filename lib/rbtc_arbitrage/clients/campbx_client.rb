@@ -7,6 +7,10 @@ module RbtcArbitrage
         :campbx
       end
 
+      def exchange_fee
+        0.0055
+      end
+
       def balance
         return @balance if @balance
         funds = interface.my_funds
