@@ -1,0 +1,91 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://campbx.com/api/xticker.php
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - '*/*'
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - cloudflare-nginx
+      Date:
+      - Sun, 23 Mar 2014 03:30:11 GMT
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Set-Cookie:
+      - __cfduid=d5959036b6f71a1846c956b349605ab471395545410818; expires=Mon, 23-Dec-2019
+        23:50:00 GMT; path=/; domain=.campbx.com; HttpOnly
+      X-Frame-Options:
+      - SAMEORIGIN
+      Cache-Control:
+      - no-cache, must-revalidate, max-age=3600
+      Vary:
+      - Accept-Encoding
+      Expires:
+      - Sun, 23 Mar 2014 04:30:05 GMT
+      Cf-Ray:
+      - 10f78c819b1e012b-SJC
+    body:
+      encoding: UTF-8
+      string: '{"Last Trade":"582.01","Best Bid":"598.00","Best Ask":"599.99"}'
+    http_version: 
+  recorded_at: Sun, 23 Mar 2014 03:30:11 GMT
+- request:
+    method: get
+    uri: https://www.bitstamp.net/api/ticker/
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Etag:
+      - '"120627-a0-4f53dbbb126b1"'
+      Last-Modified:
+      - Sun, 23 Mar 2014 03:29:57 GMT
+      Content-Length:
+      - '160'
+      Content-Type:
+      - application/json
+      Cache-Control:
+      - max-age=10, public
+      Expires:
+      - Sun, 23 Mar 2014 03:30:21 GMT
+      Date:
+      - Sun, 23 Mar 2014 03:30:11 GMT
+      Set-Cookie:
+      - incap_ses_209_99025=/Pt0LzC6viGfdmvjkIXmAkNVLlMAAAAAaFpHwp3YsMhz5noifqhXyg==;
+        path=/; Domain=.bitstamp.net
+      - visid_incap_99025=2EcA4uXSRZ+SzOE2AsWMxENVLlMAAAAAQUIPAAAAAADDQabegou/a5tQLDR/2oR9;
+        expires=Mon, 21 Mar 2016 09:10:12 GMT; path=/; Domain=.bitstamp.net
+      X-Iinfo:
+      - 10-57915944-0 0CNN RT(1395545410761 287) q(0 -1 -1 0) r(0 -1)
+      X-Cdn:
+      - Incapsula
+    body:
+      encoding: ASCII-8BIT
+      string: '{"high": "571.70", "last": "565.14", "timestamp": "1395545393", "bid":
+        "563.11", "vwap": "556.51", "volume": "13035.98901950", "low": "541.00", "ask":
+        "567.39"}'
+    http_version: 
+  recorded_at: Sun, 23 Mar 2014 03:30:11 GMT
+recorded_with: VCR 2.8.0

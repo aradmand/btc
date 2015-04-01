@@ -1,0 +1,83 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://www.bitstamp.net/api/balance/
+    headers: {}
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Sun, 23 Mar 2014 03:30:42 GMT
+      Server:
+      - Apache
+      Content-Language:
+      - en
+      Expires:
+      - Sun, 23 Mar 2014 03:30:42 GMT
+      Vary:
+      - Accept-Language
+      Cache-Control:
+      - max-age=0
+      Last-Modified:
+      - Sun, 23 Mar 2014 03:30:42 GMT
+      Connection:
+      - close
+      Transfer-Encoding:
+      - chunked
+      Content-Type:
+      - application/json
+      X-Cdn:
+      - Incapsula
+    body:
+      encoding: ASCII-8BIT
+      string: '{"btc_reserved": "0", "fee": "0.5000", "btc_available": "0", "usd_reserved":
+        "0", "btc_balance": "0", "usd_balance": "0.00", "usd_available": "0.00"}'
+    http_version:
+  recorded_at: Sun, 23 Mar 2014 03:30:42 GMT
+- request:
+    method: post
+    uri: https://campbx.com/api/myfunds.php
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - '*/*'
+      User-Agent:
+      - Ruby
+      Content-Type:
+      - application/x-www-form-urlencoded
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - cloudflare-nginx
+      Date:
+      - Sun, 23 Mar 2014 03:30:44 GMT
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      X-Frame-Options:
+      - SAMEORIGIN
+      Cache-Control:
+      - no-cache, must-revalidate, max-age=3600
+      Vary:
+      - Accept-Encoding
+      Expires:
+      - Sun, 23 Mar 2014 04:30:38 GMT
+      Cf-Ray:
+      - 10f78d4c29bd0657-SJC
+    body:
+      encoding: UTF-8
+      string: "\r\n{\"Total USD\":\"1.41\",\"Total BTC\":\"0.00790000\",\"Liquid USD\":\"1.41\",\"Liquid
+        BTC\":\"0.00790000\",\"Margin Account USD\":\"0.00\",\"Margin Account BTC\":\"0.00000000\"}"
+    http_version:
+  recorded_at: Sun, 23 Mar 2014 03:30:43 GMT
+recorded_with: VCR 2.8.0

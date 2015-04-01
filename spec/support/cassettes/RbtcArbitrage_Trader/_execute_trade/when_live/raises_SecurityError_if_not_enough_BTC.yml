@@ -1,0 +1,86 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://www.bitstamp.net/api/balance/
+    headers: {}
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Sun, 23 Mar 2014 03:30:50 GMT
+      Server:
+      - Apache
+      Content-Language:
+      - en
+      Expires:
+      - Sun, 23 Mar 2014 03:30:50 GMT
+      Vary:
+      - Accept-Language
+      Cache-Control:
+      - max-age=0
+      Last-Modified:
+      - Sun, 23 Mar 2014 03:30:50 GMT
+      Connection:
+      - close
+      Transfer-Encoding:
+      - chunked
+      Content-Type:
+      - application/json
+      X-Cdn:
+      - Incapsula
+    body:
+      encoding: ASCII-8BIT
+      string: '{"btc_reserved": "0", "fee": "0.5000", "btc_available": "0", "usd_reserved":
+        "0", "btc_balance": "0", "usd_balance": "0.00", "usd_available": "0.00"}'
+    http_version:
+  recorded_at: Sun, 23 Mar 2014 03:30:50 GMT
+- request:
+    method: post
+    uri: https://campbx.com/api/myfunds.php
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - '*/*'
+      User-Agent:
+      - Ruby
+      Content-Type:
+      - application/x-www-form-urlencoded
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - cloudflare-nginx
+      Date:
+      - Sun, 23 Mar 2014 03:30:51 GMT
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Set-Cookie:
+      - __cfduid=d75df4a389c19e5b09c4e4c5ad767cdc51395545450860; expires=Mon, 23-Dec-2019
+        23:50:00 GMT; path=/; domain=.campbx.com; HttpOnly
+      X-Frame-Options:
+      - SAMEORIGIN
+      Cache-Control:
+      - no-cache, must-revalidate, max-age=3600
+      Vary:
+      - Accept-Encoding
+      Expires:
+      - Sun, 23 Mar 2014 04:30:46 GMT
+      Cf-Ray:
+      - 10f78d7b68dc0657-SJC
+    body:
+      encoding: UTF-8
+      string: "\r\n{\"Total USD\":\"1.41\",\"Total BTC\":\"0.00790000\",\"Liquid USD\":\"1.41\",\"Liquid
+        BTC\":\"0.00790000\",\"Margin Account USD\":\"0.00\",\"Margin Account BTC\":\"0.00000000\"}"
+    http_version:
+  recorded_at: Sun, 23 Mar 2014 03:30:51 GMT
+recorded_with: VCR 2.8.0

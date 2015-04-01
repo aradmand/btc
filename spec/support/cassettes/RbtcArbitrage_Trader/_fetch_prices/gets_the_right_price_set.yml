@@ -1,0 +1,179 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://www.bitstamp.net/api/ticker/
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Etag:
+      - '"10073f-a0-4f53de978bbb9"'
+      Last-Modified:
+      - Sun, 23 Mar 2014 03:42:45 GMT
+      Content-Length:
+      - '160'
+      Content-Type:
+      - application/json
+      Cache-Control:
+      - max-age=10, public
+      Expires:
+      - Sun, 23 Mar 2014 03:43:01 GMT
+      Date:
+      - Sun, 23 Mar 2014 03:42:51 GMT
+      Set-Cookie:
+      - incap_ses_124_99025=mwTsavgumAMG7DSiVYq4ATtYLlMAAAAAU99DGZK1+BFZEUmE1d4jIQ==;
+        path=/; Domain=.bitstamp.net
+      - visid_incap_99025=zd0yM3WjShON/tow/SLn4eNXLlMAAAAAQUIPAAAAAABfYu5wnsbdzNpheq/Fd7WR;
+        expires=Mon, 21 Mar 2016 10:22:23 GMT; path=/; Domain=.bitstamp.net
+      X-Iinfo:
+      - 6-100669242-0 0CNY RT(1395546171233 187) q(0 -1 -1 0) r(0 -1)
+      X-Cdn:
+      - Incapsula
+    body:
+      encoding: ASCII-8BIT
+      string: '{"high": "571.70", "last": "563.89", "timestamp": "1395546161", "bid":
+        "560.30", "vwap": "556.58", "volume": "13437.79188219", "low": "541.00", "ask":
+        "563.43"}'
+    http_version: 
+  recorded_at: Sun, 23 Mar 2014 03:42:51 GMT
+- request:
+    method: get
+    uri: https://campbx.com/api/xticker.php
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - '*/*'
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - cloudflare-nginx
+      Date:
+      - Sun, 23 Mar 2014 03:42:52 GMT
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Set-Cookie:
+      - __cfduid=d46d34ccb02f0a506ce579433a76070af1395546171804; expires=Mon, 23-Dec-2019
+        23:50:00 GMT; path=/; domain=.campbx.com; HttpOnly
+      X-Frame-Options:
+      - SAMEORIGIN
+      Cache-Control:
+      - no-cache, must-revalidate, max-age=3600
+      Vary:
+      - Accept-Encoding
+      Expires:
+      - Sun, 23 Mar 2014 04:42:46 GMT
+      Cf-Ray:
+      - 10f79f15cf95012b-SJC
+    body:
+      encoding: UTF-8
+      string: '{"Last Trade":"582.01","Best Bid":"598.00","Best Ask":"599.84"}'
+    http_version: 
+  recorded_at: Sun, 23 Mar 2014 03:42:52 GMT
+- request:
+    method: get
+    uri: https://www.bitstamp.net/api/ticker/
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Etag:
+      - '"10073f-a0-4f53de978bbb9"'
+      Last-Modified:
+      - Sun, 23 Mar 2014 03:42:45 GMT
+      Content-Length:
+      - '160'
+      Content-Type:
+      - application/json
+      Cache-Control:
+      - max-age=10, public
+      Expires:
+      - Sun, 23 Mar 2014 03:43:02 GMT
+      Date:
+      - Sun, 23 Mar 2014 03:42:52 GMT
+      Set-Cookie:
+      - incap_ses_124_99025=8NJIRP2zDnyynzWiVYq4ATxYLlMAAAAA87rGvUgzMjmG+XWYXT4xvw==;
+        path=/; Domain=.bitstamp.net
+      - visid_incap_99025=Re8g8GXTROC4MP9gs7PT6TxYLlMAAAAAQUIPAAAAAADlHONH0i5mBLSiKrP5+Vzo;
+        expires=Mon, 21 Mar 2016 10:22:23 GMT; path=/; Domain=.bitstamp.net
+      X-Iinfo:
+      - 6-100669713-0 0CNY RT(1395546172401 172) q(0 -1 -1 -1) r(0 -1)
+      X-Cdn:
+      - Incapsula
+    body:
+      encoding: ASCII-8BIT
+      string: '{"high": "571.70", "last": "563.89", "timestamp": "1395546161", "bid":
+        "560.30", "vwap": "556.58", "volume": "13437.79188219", "low": "541.00", "ask":
+        "563.43"}'
+    http_version: 
+  recorded_at: Sun, 23 Mar 2014 03:42:52 GMT
+- request:
+    method: get
+    uri: https://campbx.com/api/xticker.php
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - '*/*'
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - cloudflare-nginx
+      Date:
+      - Sun, 23 Mar 2014 03:42:53 GMT
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Set-Cookie:
+      - __cfduid=d83066d5da39577b93334f93269e8a0cb1395546173208; expires=Mon, 23-Dec-2019
+        23:50:00 GMT; path=/; domain=.campbx.com; HttpOnly
+      X-Frame-Options:
+      - SAMEORIGIN
+      Cache-Control:
+      - no-cache, must-revalidate, max-age=3600
+      Vary:
+      - Accept-Encoding
+      Expires:
+      - Sun, 23 Mar 2014 04:42:47 GMT
+      Cf-Ray:
+      - 10f79f1e86130657-SJC
+    body:
+      encoding: UTF-8
+      string: '{"Last Trade":"582.01","Best Bid":"598.00","Best Ask":"599.84"}'
+    http_version: 
+  recorded_at: Sun, 23 Mar 2014 03:42:53 GMT
+recorded_with: VCR 2.8.0

@@ -1,0 +1,95 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://campbx.com/api/xticker.php
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - '*/*'
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - cloudflare-nginx
+      Date:
+      - Sun, 23 Mar 2014 03:30:53 GMT
+      Content-Type:
+      - application/json
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Set-Cookie:
+      - __cfduid=d0ec3c91b157ea6ea8ba5eea1c0b9e62e1395545452531; expires=Mon, 23-Dec-2019
+        23:50:00 GMT; path=/; domain=.campbx.com; HttpOnly
+      X-Frame-Options:
+      - SAMEORIGIN
+      Cache-Control:
+      - no-cache, must-revalidate, max-age=3600
+      Vary:
+      - Accept-Encoding
+      Expires:
+      - Sun, 23 Mar 2014 04:30:47 GMT
+      Cf-Ray:
+      - 10f78d8654510657-SJC
+    body:
+      encoding: UTF-8
+      string: '{"Last Trade":"582.01","Best Bid":"598.00","Best Ask":"599.99"}'
+    http_version: 
+  recorded_at: Sun, 23 Mar 2014 03:30:52 GMT
+- request:
+    method: get
+    uri: https://www.bitstamp.net/api/ticker/
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers: {}
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Date:
+      - Sun, 23 Mar 2014 03:30:54 GMT
+      Server:
+      - Apache
+      Last-Modified:
+      - Sun, 23 Mar 2014 03:30:51 GMT
+      Etag:
+      - '"120627-a0-4f53dbeebac97"'
+      Accept-Ranges:
+      - bytes
+      Content-Length:
+      - '160'
+      Connection:
+      - close
+      Content-Type:
+      - application/json
+      Set-Cookie:
+      - incap_ses_209_99025=9RrSPLVP4F3BnGvjkIXmAm1VLlMAAAAAx1f4abFmtl6Z8bIaog036A==;
+        path=/; Domain=.bitstamp.net
+      - nlbi_99025=BJ/GH4XZjCvPh8Xu+dl6vQAAAAD2295EOl0U01S7hrjDVx7O; path=/; Domain=.bitstamp.net
+      - visid_incap_99025=4LVjF+fWSey6PiZlv367UW1VLlMAAAAAQUIPAAAAAACUFwMhNgMzP7Iy1+k8ikx4;
+        expires=Mon, 21 Mar 2016 09:10:05 GMT; path=/; Domain=.bitstamp.net
+      X-Iinfo:
+      - 9-47164688-47164746 NNNN CT(148 149 0) RT(1395545452369 264) q(0 0 3 -1) r(3
+        6) U13
+      X-Cdn:
+      - Incapsula
+    body:
+      encoding: ASCII-8BIT
+      string: '{"high": "571.70", "last": "565.14", "timestamp": "1395545447", "bid":
+        "563.11", "vwap": "556.51", "volume": "13033.39643050", "low": "541.00", "ask":
+        "567.39"}'
+    http_version: 
+  recorded_at: Sun, 23 Mar 2014 03:30:53 GMT
+recorded_with: VCR 2.8.0

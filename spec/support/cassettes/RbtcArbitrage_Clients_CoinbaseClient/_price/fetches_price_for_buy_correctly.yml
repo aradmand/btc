@@ -1,0 +1,70 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://coinbase.com/api/v1/prices/buy?qty=1
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Access-Key:
+      - <COINBASE_KEY>
+      Access-Signature:
+      - f04dbaf80cbe0217b1c167979915b075f315cf6077a472733581b16c382bfe70
+      Access-Nonce:
+      - '1406308780089377'
+      Content-Type:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - cloudflare-nginx
+      Date:
+      - Fri, 25 Jul 2014 17:19:42 GMT
+      Content-Type:
+      - application/json; charset=utf-8
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Set-Cookie:
+      - __cfduid=d3a2fa250275edf59b22bb16b92e40dc01406308781275; expires=Mon, 23-Dec-2019
+        23:50:00 GMT; path=/; domain=.coinbase.com; HttpOnly
+      - _coinbase=BAh7B0kiD3Nlc3Npb25faWQGOgZFVEkiJWUxYmQ0ODk1NmM5N2M4YTcxNjhiY2I2MmFmYmFkMjJiBjsAVEkiC2RldmljZQY7AEZJIhxEMmlwbXZvdnFGY0ZGd0ZHWDdwUURlbQY7AFQ%3D--75f5cf18d7647734b58f9f45b60eef124d35687b;
+        path=/; expires=Mon, 25-Jul-2016 17:19:42 GMT; secure; HttpOnly
+      - request_method=GET; path=/; secure
+      Cache-Control:
+      - no-cache, no-store, max-age=0, must-revalidate
+      Expires:
+      - '-1'
+      Pragma:
+      - no-cache
+      Status:
+      - 200 OK
+      Strict-Transport-Security:
+      - max-age=31536000
+      Vary:
+      - Accept-Encoding
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - SAMEORIGIN
+      X-Rack-Cache:
+      - miss
+      X-Request-Id:
+      - 36e9ff07-ca0b-4414-835b-9aaa9fa88ef9
+      X-Runtime:
+      - '0.892429'
+      X-Ua-Compatible:
+      - IE=Edge,chrome=1
+      Cf-Ray:
+      - 14fa061afea7051a-SEA
+    body:
+      encoding: UTF-8
+      string: '{"subtotal":{"amount":"602.93","currency":"USD"},"fees":[{"coinbase":{"amount":"6.03","currency":"USD"}},{"bank":{"amount":"0.15","currency":"USD"}}],"total":{"amount":"609.11","currency":"USD"},"amount":"609.11","currency":"USD"}'
+    http_version: 
+  recorded_at: Fri, 25 Jul 2014 17:19:42 GMT
+recorded_with: VCR 2.8.0
