@@ -16,4 +16,5 @@ group :development do
   gem 'hashie'
   gem 'sinatra'
   gem 'dotenv'
+  gem 'logger', '~> 1.2.8'
 end

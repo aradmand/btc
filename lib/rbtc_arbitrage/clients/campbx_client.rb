@@ -1,6 +1,8 @@
+
 module RbtcArbitrage
   module Clients
     class CampbxClient
+      require 'csv'
       include RbtcArbitrage::Client
 
       def exchange
@@ -28,6 +30,7 @@ module RbtcArbitrage
       end
 
       def price action
+
         return @price if @price
         action = {
           buy: "Best Ask",
@@ -44,9 +47,11 @@ module RbtcArbitrage
         # else
         #   10
         # end
-
         @price = interface.xticker[action].to_f
-
+        @time = Time.now
+        CSV.open( "/Users/joshthedudeoflife/btc-gamma/campbx_logger.csv", 'a+' ) do |writer|
+            writer << [@time, @price]
+        end
         @price + price_multiple
       end
 

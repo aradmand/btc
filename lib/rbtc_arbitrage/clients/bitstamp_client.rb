@@ -29,6 +29,7 @@ module RbtcArbitrage
           sell: :bid,
         }[action]
         @price = Bitstamp.ticker.send(action).to_f
+
       end
 
       def trade action

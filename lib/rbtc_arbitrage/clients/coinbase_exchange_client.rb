@@ -2,7 +2,7 @@ module RbtcArbitrage
   module Clients
     class CoinbaseExchangeClient
       include RbtcArbitrage::Client
-
+      require 'csv'
       require 'pry'
       require 'curb'
       require 'active_support'
@@ -39,6 +39,7 @@ module RbtcArbitrage
 
       # `action` is :buy or :sell
       def trade action
+
         price = price(action)
         multiple = {
           buy: 1,
@@ -46,7 +47,6 @@ module RbtcArbitrage
         }[action]
         adjusted_price = price + 0.001 * multiple
         adjusted_price = adjusted_price.round(2)
-
         amount = @options[:volume]
 
         side = if action == :buy
@@ -61,15 +61,22 @@ module RbtcArbitrage
       # Returns a Numeric type.
       def price action
         bids_asks_hash = order_book_command(action)
-
         if action == :buy
           #buy = asks
           price_entries = bids_asks_hash[:asks]
           price_entries.first.first.try(:to_f)
+          @price_ask = price_entries.first.first.try(:to_f)
         else
           #sell = bids
           price_entries = bids_asks_hash[:bids]
           price_entries.first.first.try(:to_f)
+          @price_bid = price_entries.first.first.try(:to_f)
+        end
+        #binding.pry
+        #@price = @price_bid || @price_ask
+        @time = Time.now
+        CSV.open( "/Users/joshthedudeoflife/btc-gamma/coinbase_exchange_logger.csv", 'a+' ) do |writer|
+         writer << [@time, @price_ask]
         end
       end
 

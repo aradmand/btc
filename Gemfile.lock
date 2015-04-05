@@ -90,6 +90,7 @@ GEM
       celluloid (>= 0.15.2)
       rb-fsevent (>= 0.9.3)
       rb-inotify (>= 0.9)
+    logger (1.2.8)
     lumberjack (1.0.4)
     mail (2.6.1)
       mime-types (>= 1.16, < 3)
@@ -179,6 +180,7 @@ DEPENDENCIES
   guard
   guard-rspec
   hashie
+  logger (~> 1.2.8)
   rbtc_arbitrage!
   rspec
   ruby_gntp
