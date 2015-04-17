@@ -1,5 +1,6 @@
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require 'rbtc_arbitrage'
+require 'csv'
 require 'pry'
 require 'curb'
 require 'active_support'
@@ -27,6 +28,7 @@ coinbase_exchange_client.validate_env
 coinbase_buy_price = coinbase_client.price(:buy)
 coinbase_sell_price = coinbase_client.price(:sell)
 
+
 puts 'coinbase_buy_price'
 puts coinbase_buy_price
 
@@ -35,6 +37,10 @@ puts coinbase_sell_price
 
 coinbase_exchange_buy_price = coinbase_exchange_client.price(:buy)
 coinbase_exchange_sell_price = coinbase_exchange_client.price(:sell)
+@time = Time.now
+# CSV.open( "/Users/joshthedudeoflife/btc-gamma/campbx_logger.csv", 'a+' ) do |writer|
+# 	writer << [@time, coinbase_exchange_buy_pricece]
+# end
 
 puts 'coinbase_exchange_buy_price'
 puts coinbase_exchange_buy_price

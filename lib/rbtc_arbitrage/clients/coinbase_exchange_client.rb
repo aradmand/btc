@@ -39,7 +39,6 @@ module RbtcArbitrage
 
       # `action` is :buy or :sell
       def trade action
-
         price = price(action)
         multiple = {
           buy: 1,
@@ -47,6 +46,7 @@ module RbtcArbitrage
         }[action]
         adjusted_price = price + 0.001 * multiple
         adjusted_price = adjusted_price.round(2)
+        # binding.pry
         amount = @options[:volume]
 
         side = if action == :buy
@@ -55,6 +55,7 @@ module RbtcArbitrage
           'sell'
         end
         result = place_new_order_command(amount, adjusted_price, side)
+
       end
 
       # `action` is :buy or :sell
@@ -66,20 +67,25 @@ module RbtcArbitrage
           price_entries = bids_asks_hash[:asks]
           price_entries.first.first.try(:to_f)
           @price_ask = price_entries.first.first.try(:to_f)
+         
         else
           #sell = bids
           price_entries = bids_asks_hash[:bids]
           price_entries.first.first.try(:to_f)
           @price_bid = price_entries.first.first.try(:to_f)
         end
-        #binding.pry
-        #@price = @price_bid || @price_ask
         @time = Time.now
-        CSV.open( "/Users/joshthedudeoflife/btc-gamma/coinbase_exchange_logger.csv", 'a+' ) do |writer|
-         writer << [@time, @price_ask]
+        CSV.open( "/btc-gamma/coinbase_exchange_logger.csv", 'a+' ) do |writer|
+            writer << [@time, @price_bid, @price_ask]
+        end
+        # Return proper value
+        if action == :buy
+          @price_ask
+        else
+          @price_bid
         end
       end
-
+      
       # Transfers BTC to the address of a different
       # exchange.
       def transfer client
@@ -197,7 +203,7 @@ module RbtcArbitrage
           "side" => side,
           "product_id" => product_id
         }
-
+        binding.pry
         auth_headers = signature('/orders', request_body, nil, 'POST')
 
         api_url = "#{exchange_api_url}/orders"
