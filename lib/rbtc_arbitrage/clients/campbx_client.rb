@@ -48,9 +48,10 @@ module RbtcArbitrage
         #   10
         # end
         @price = interface.xticker[action].to_f
-        @time = Time.now
-        CSV.open( "/btc-gamma/campbx_logger.csv", 'a+' ) do |writer|
-            writer << [@time, @price]
+        time = Time.now.strftime("%B %d, %Y")
+        time_of_day = Time.now.to_formatted_s(:time) 
+        CSV.open( "/Users/joshthedudeoflife/btc-gamma/campbx_logger.csv", 'a+' ) do |writer|
+            writer << [time, time_of_day, @price]
         end
         @price + price_multiple
       end
