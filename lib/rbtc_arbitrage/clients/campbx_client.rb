@@ -36,7 +36,7 @@ module RbtcArbitrage
           buy: "Best Ask",
           sell: "Best Bid",
         }[action]
-
+        #binding.pry
         price_multiple = 0
 
         # TESTING - UNCOMMNET
@@ -47,11 +47,19 @@ module RbtcArbitrage
         # else
         #   10
         # end
+
         @price = interface.xticker[action].to_f
+        type_of_price = [action]
+        if type_of_price == ["Best Bid"]
+          bid_price = @price
+        else
+          ask_price = @price
+        end
+        #binding.pry
         time = Time.now.strftime("%B %d, %Y")
         time_of_day = Time.now.to_formatted_s(:time) 
         CSV.open( "/Users/joshthedudeoflife/btc-gamma/campbx_logger.csv", 'a+' ) do |writer|
-            writer << [time, time_of_day, @price]
+            writer << [time, time_of_day, bid_price, ask_price]
         end
         @price + price_multiple
       end
@@ -92,7 +100,7 @@ module RbtcArbitrage
         if buy_orders.length == 1 && buy_orders.first['Info'].present?
           buy_orders = []
         end
-
+        binding.pry
         buy_orders + sell_orders
       end
     end
