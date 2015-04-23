@@ -14,7 +14,7 @@ require 'json'
 
 
 # Instantiate Circle Client
-circle_client = RbtcArbitrage::Clients::CircleClient.new
+circle_client = RbtcArbitrage::Clients::CircleClient.new(volume: 0.01)
 
 ####################
 # Validate Env
@@ -44,13 +44,10 @@ balance_result.count == 2
 # Transfer btc
 ####################
 
-circle_client = RbtcArbitrage::Clients::CircleClient.new
-
 coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
 
 # Uncomment the following line to transfer bitcoin to coinbase
 # circle_client.transfer(coinbase_client)
-
 
 
 
@@ -79,12 +76,15 @@ puts circle_sell_price
 
 
 
+
 ####################
 #  Trade
 #
 # Uncomment the following section to buy :volume BTC
 # and then sell :volume BTC
 ##############################
+
+binding.pry
 
 # puts "Buying #{circle_client.options[:volume]} BTC"
 # buy = circle_client.trade(:buy)
