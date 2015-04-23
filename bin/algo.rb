@@ -1,5 +1,8 @@
 # Gamma Algo
 #
+# This Algorithm is optimized for arbitrage trading between the campbx and
+# coinbase_exchange exchanges.
+#
 # Features of this strategey include:
 # => Before trading, the algo will check to see if any open orders
 #  exist on either exchange.  If so, the algo will pause and not continue
