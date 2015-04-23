@@ -1,17 +1,16 @@
-# Gamma Algo
+# Delta Algo
 #
-# This Algorithm is optimized for arbitrage trading between the campbx and
+# This Algorithm is optimized for arbitrage trading between the circle and
 # coinbase_exchange exchanges.
 #
 # Features of this strategey include:
 # => Before trading, the algo will check to see if any open orders
-#  exist on either exchange.  If so, the algo will pause and not continue
+#  exist on the coinbase_exchange exchange.  If so, the algo will pause and not continue
 #  trading until there are 0 open orders.
 #
-# => The 'volume' quantity of the selling exchange will be matched to the current
-#  quantity of the top of book 'Bid' order on the sell exchange (if the order quantity
-#  is less than the volume of BTC we have on hand at the exchange).  This should help
-#  guard against orders sitting open due to non-matches for AON
+# => Before trading, BTC balances on either exchange will be checked to ensure
+#   there are enough funds available to trade.
+#
 
 require 'date'
 require 'pry'
@@ -28,7 +27,7 @@ MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 
 
 def set_trading_parameters
-  @buyer = ENV['BTC_BUYER'].try(:to_sym) || :campbx
+  @buyer = ENV['BTC_BUYER'].try(:to_sym) || :circle
   @seller = ENV['BTC_SELLER'].try(:to_sym) || :coinbase_exchange
   @volume = 0.1
 

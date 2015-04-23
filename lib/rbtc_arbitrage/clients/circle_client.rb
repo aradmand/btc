@@ -62,8 +62,12 @@ module RbtcArbitrage
       #  As a result, the default volume to exchange has been changed
       #  to 0.011 BTC
       def transfer(other_client)
-        volume = @options[:volume]
-        transfer_btc(volume, other_client)
+        if other_client.exchange == :coinbase_exchange
+          client_address = other_client.address(true)
+          transfer_btc(@options[:volume], other_client)
+        else
+          transfer_btc(@options[:volume], other_client)
+        end
       end
 
       # If there is an API method to fetch your
