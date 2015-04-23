@@ -78,6 +78,10 @@ module RbtcArbitrage
         api_address_command
       end
 
+      def open_orders
+        []
+      end
+
     private
 
       def api_address_command(customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])

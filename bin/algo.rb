@@ -11,6 +11,10 @@
 # => Before trading, BTC balances on either exchange will be checked to ensure
 #   there are enough funds available to trade.
 #
+#
+# => Profit is only recorded against the accumulated total
+#   if there was enough balance in each of the exchanges and the trade was
+#   actually executed.
 
 require 'date'
 require 'pry'
@@ -22,7 +26,7 @@ require 'rbtc_arbitrage'
 enabled = true
 profit = 0
 
-MIN_PERCENT_PROFIT = 1.5
+MIN_PERCENT_PROFIT = 0.5
 MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 
 
@@ -110,10 +114,6 @@ def trade(buy_exchange, sell_exchange)
     profit_dollars, profit_percent = rbtc_arbitrage.get_profit
     puts "Profit: $#{profit_dollars} --> #{profit_percent}%"
 
-    if profit_percent > percent
-    puts "PROFITABLE TRADE!"
-    @accumulated_profit_in_cents += (profit_dollars * 100)
-    end
     puts "ACCUMULATED PROFIT: #{@accumulated_profit_in_cents / 100.0}"
 
     end_time = Time.now
@@ -129,7 +129,12 @@ def trade(buy_exchange, sell_exchange)
     puts "\t---Done excecuting command---"
     puts "#=================="
 
-  rescue Exception => e
+    if profit_percent > percent
+      puts "PROFITABLE TRADE!"
+      @accumulated_profit_in_cents += (profit_dollars * 100)
+    end
+
+  rescue SecurityError => e
     puts " *** Exception has occured *** "
     puts e.message
     puts "************"
