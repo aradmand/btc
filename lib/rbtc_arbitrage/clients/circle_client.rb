@@ -7,6 +7,7 @@ module RbtcArbitrage
       require 'curb'
       require 'active_support'
       require 'json'
+      require 'active_support/core_ext/object/try'
 
       # return a symbol as the name
       # of this exchange
@@ -61,12 +62,14 @@ module RbtcArbitrage
       #  Higher, or this transfer method will NOT work.
       #  As a result, the default volume to exchange has been changed
       #  to 0.011 BTC
-      def transfer(other_client)
+      def transfer(other_client, override_values = nil)
         if other_client.exchange == :coinbase_exchange
           client_address = other_client.address(true)
-          transfer_btc(@options[:volume], other_client)
+          volume = override_values.try(:[], :volume) || @options[:volume]
+          transfer_btc(volume, other_client)
         else
-          transfer_btc(@options[:volume], other_client)
+          volume = override_values.try(:[], :volume) || @options[:volume]
+          transfer_btc(volume, other_client)
         end
       end
 
@@ -246,7 +249,9 @@ module RbtcArbitrage
           puts 'Withdraw Details:'
           puts withdraw_response_status
         end
-        response_code
+
+        satoshi_value_withdrawn = withdraw_response_status['response']['transaction']['satoshiValue']
+        {status: response_code, satoshi_value: satoshi_value_withdrawn}
       end
 
       def api_deposits_command(deposit_json_data, customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])
@@ -290,10 +295,15 @@ module RbtcArbitrage
           puts 'Deposit Details:'
           puts deposit_response_status
         end
-        response_code
+
+        satoshi_value_deposited = deposit_response_status['response']['transaction']['satoshiValue']
+        {status: response_code, satoshi_value: satoshi_value_deposited}
       end
 
       def calculate_satoshi_value(fiat_value, exchange_rate)
+        # A Satoshi is the smallest denomination of BTC
+        # 1 Satoshi = 0.00000001 BTC
+
         satoshi_value = (fiat_value / exchange_rate.to_f).round(18)
         saftey_index = 0
 

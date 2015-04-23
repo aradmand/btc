@@ -152,6 +152,12 @@ module RbtcArbitrage
       end
     end
 
+    def self.get_btc_from_satoshi_value(satoshi_value)
+      # A Satoshi is the smallest denomination of BTC
+      # 1 Satoshi = 0.00000001 BTC
+      satoshi_value * 0.00000001
+    end
+
     private
 
     def calculate_profit
@@ -165,11 +171,28 @@ module RbtcArbitrage
         raise SecurityError, "Not enough funds. Exiting."
       else
         logger.info "Trading live!" if options[:verbose]
-        @buy_client.buy
-        @sell_client.sell
-        @buy_client.transfer @sell_client
+
+        # If we're dealing with the Circle Exchange,
+        # match the BTC value of whatever was just bought / sold
+        if @buy_client.exchange == :circle
+          buy_result = @buy_client.buy
+          btc_volume = Trader.get_btc_from_satoshi_value(buy_result[:satoshi_value])
+          @sell_client.sell(volume: btc_volume)
+          @buy_client.transfer(@sell_client, volume: btc_volume)
+
+        elsif @sell_client.exchange == :circle
+          sell_result = @sell_client.sell
+          btc_volume = Trader.get_btc_from_satoshi_value(sell_result[:satoshi_value])
+          @buy_client.buy(volume: btc_volume)
+          @buy_client.transfer(@sell_client, volume: btc_volume)
+
+        else
+          # Normal
+          @buy_client.buy
+          @sell_client.sell
+          @buy_client.transfer @sell_client
+        end
       end
     end
-
   end
 end

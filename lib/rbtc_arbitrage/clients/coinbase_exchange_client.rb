@@ -9,6 +9,7 @@ module RbtcArbitrage
       require 'json'
       require 'base64'
       require 'openssl'
+      require 'active_support/core_ext/object/try'
 
       # return a symbol as the name
       # of this exchange
@@ -42,7 +43,7 @@ module RbtcArbitrage
       end
 
       # `action` is :buy or :sell
-      def trade action
+      def trade(action, override_values = nil)
         price = price(action)
         multiple = {
           buy: 1,
@@ -51,7 +52,7 @@ module RbtcArbitrage
         adjusted_price = price + 0.001 * multiple
         adjusted_price = adjusted_price.round(2)
 
-        amount = @options[:volume]
+        amount = override_values.try(:[], :volume) || @options[:volume]
 
         side = if action == :buy
           'buy'
@@ -79,7 +80,7 @@ module RbtcArbitrage
 
       # Transfers BTC to the address of a different
       # exchange.
-      def transfer client
+      def transfer(client, override_values = nil)
         # With CoinbaseExchange, this is a 2-step process:
         # 1.) Transfer BTC from CoinbaseExchange BTC account to
         # Bitcoin.com's BTC Wallet
@@ -88,10 +89,12 @@ module RbtcArbitrage
         # client address.
 
         # First, transfer BTC from CoinbaseExchange BTC acct to Bitcoin Wallet
-        coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new(self.options)
+        volume = override_values.try(:[], :volume) || @options[:volume]
+
+        coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new(self.options.merge({volume: volume}))
         coinbase_account = coinbase_client.account('My Wallet')
 
-        transfer_response = transfer_funds_command('withdraw', @options[:volume], coinbase_account['id'])
+        transfer_response = transfer_funds_command('withdraw', volume, coinbase_account['id'])
 
         # Second, transfer BTC from Coinbase BTC Wallet to the desired client
         coinbase_transfer_response = coinbase_client.transfer(client)

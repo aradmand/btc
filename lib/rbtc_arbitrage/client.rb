@@ -23,12 +23,12 @@ module RbtcArbitrage
       end
     end
 
-    def buy
-      trade :buy
+    def buy(override_values = nil)
+      trade(:buy, override_values)
     end
 
-    def sell
-      trade :sell
+    def sell(override_values = nil)
+      trade(:sell, override_values)
     end
 
     def address
