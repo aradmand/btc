@@ -84,8 +84,6 @@ puts circle_sell_price
 # and then sell :volume BTC
 ##############################
 
-binding.pry
-
 # puts "Buying #{circle_client.options[:volume]} BTC"
 # buy = circle_client.trade(:buy)
 # if buy == 0

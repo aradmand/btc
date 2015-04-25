@@ -446,7 +446,7 @@ module RbtcArbitrage
       #  for buying and selling BTC.
       ###
       def fiat_account_description
-        "BANK OF AMERICA, N.A. ****4655"
+        "BANK OF AMERICA, N.A. ****5798"
       end
 
       def circle_cookie
