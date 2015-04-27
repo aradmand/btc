@@ -49,7 +49,7 @@ module RbtcArbitrage
           buy: 1,
           sell: -1,
         }[action]
-        adjusted_price = price + 0.001 * multiple
+        adjusted_price = price + 0.01 * multiple
         adjusted_price = adjusted_price.round(2)
 
         amount = override_values.try(:[], :volume) || @options[:volume]
@@ -70,7 +70,7 @@ module RbtcArbitrage
         if action == :buy
           #buy = asks
           price_entries = bids_asks_hash[:asks]
-          price_entries.first.first.try(:to_f)
+          price_entries.second.first.try(:to_f)
         else
           #sell = bids
           price_entries = bids_asks_hash[:bids]

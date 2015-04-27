@@ -39,7 +39,7 @@ module RbtcArbitrage
       end
 
       # `action` is :buy or :sell
-      def trade action
+      def trade(action, override_values = nil)
         if action == :buy
           buy_btc(@options[:volume])
         else
@@ -235,8 +235,17 @@ module RbtcArbitrage
           http.headers['x-customer-session-token'] = circle_customer_session_token
         end
 
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        json_data = nil
+        parsed_json = nil
+        begin
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts "Exception occured in 'api_withdraws_command'"
+          binding.pry
+          puts e.message
+        end
+
 
         withdraw_response_status = parsed_json
         response_code = withdraw_response_status['response']['status']['code']
