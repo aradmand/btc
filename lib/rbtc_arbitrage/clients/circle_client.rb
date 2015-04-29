@@ -243,6 +243,9 @@ module RbtcArbitrage
         rescue => e
           puts "Exception occured in 'api_withdraws_command'"
           binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
           puts e.message
         end
 
@@ -290,8 +293,18 @@ module RbtcArbitrage
           http.headers['x-customer-session-token'] = circle_customer_session_token
         end
 
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        json_data = nil
+        parsed_json = nil
+        begin
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts 'Exception occured in api_deposits_command:'
+          binding.pry
+          puts e.message
+          puts 'curl.body_str:'
+          puts curl.body_str
+        end
 
         deposit_response_status = parsed_json
         response_code = deposit_response_status['response']['status']['code']
@@ -392,8 +405,19 @@ module RbtcArbitrage
           http.headers['x-customer-session-token'] = customer_session_token
         end
 
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        json_data = nil
+        parsed_json = nil
+
+        begin
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts 'Exception occured in api_transactions_command:'
+          binding.pry
+          puts e.message
+          puts 'curl.body_str:'
+          puts curl.body_str
+        end
 
         btc_transfer_response_status = parsed_json
         response_code = btc_transfer_response_status['response']['status']['code']

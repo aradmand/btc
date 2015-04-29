@@ -33,7 +33,7 @@ MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 def set_trading_parameters
   @buyer = ENV['BTC_BUYER'].try(:to_sym) || :circle
   @seller = ENV['BTC_SELLER'].try(:to_sym) || :coinbase_exchange
-  @volume = 0.1
+  @volume = 0.05
 
   args_hash = Hash[*ARGV]
   @live = args_hash['--live'] == 'true'
@@ -43,7 +43,7 @@ end
 def trade(buy_exchange, sell_exchange)
   begin
     percent = MIN_PERCENT_PROFIT
-    sleep(1.0)
+    sleep(5.0)
     puts
     puts
     puts

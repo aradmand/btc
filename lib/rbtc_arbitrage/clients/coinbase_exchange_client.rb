@@ -70,7 +70,7 @@ module RbtcArbitrage
         if action == :buy
           #buy = asks
           price_entries = bids_asks_hash[:asks]
-          price_entries.second.first.try(:to_f)
+          price_entries.first.first.try(:to_f)
         else
           #sell = bids
           price_entries = bids_asks_hash[:bids]
@@ -97,7 +97,7 @@ module RbtcArbitrage
         transfer_response = transfer_funds_command('withdraw', volume, coinbase_account['id'])
 
         # Second, transfer BTC from Coinbase BTC Wallet to the desired client
-        coinbase_transfer_response = coinbase_client.transfer(client)
+        coinbase_transfer_response = coinbase_client.transfer(client, {volume: volume})
       end
 
       # If there is an API method to fetch your
@@ -184,6 +184,8 @@ module RbtcArbitrage
         rescue
           puts "Error while reading response in transfer_funds_command:"
           puts curl.body_str
+          puts "Original request_body:"
+          puts request_body
           return nil
         end
       end
@@ -239,6 +241,9 @@ module RbtcArbitrage
         rescue
           puts "Error while reading response:"
           puts curl.body_str
+          puts "Original Request Body:"
+          puts request_body
+          binding.pry
           return nil
         end
       end
