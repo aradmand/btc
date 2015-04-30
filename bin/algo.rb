@@ -33,7 +33,7 @@ MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 def set_trading_parameters
   @buyer = ENV['BTC_BUYER'].try(:to_sym) || :circle
   @seller = ENV['BTC_SELLER'].try(:to_sym) || :coinbase_exchange
-  @volume = 0.05
+  @volume = 0.4
 
   args_hash = Hash[*ARGV]
   @live = args_hash['--live'] == 'true'
@@ -159,7 +159,7 @@ exchange_2 = @seller
 while enabled == true
   set_trading_parameters
   if profit > 0
-    profit, profit_percent = trade(exchange_1, exchange_2)
+    # Do Nothing
   else
     exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
   end
@@ -176,6 +176,19 @@ while enabled == true
     open_order_sleep = 10.0
     puts "*** Open orders detected on exchanges! Re-checking in #{open_order_sleep} seconds. ***"
     sleep(open_order_sleep)
+  end
+
+  if profit_percent >= MIN_PERCENT_PROFIT
+    # Sleep after profitable trade to avoid getting flagged for
+    # frequent trades on Circle
+    sleep_time = (2..6).to_a.sample * 60
+    puts
+    puts "******"
+    puts "Waiting #{sleep_time / 60} mins (#{sleep_time} seconds) after profitable trade to resume trading ..."
+    puts "******"
+    puts
+
+    sleep(sleep_time)
   end
 
   #enabled = false

@@ -456,8 +456,21 @@ module RbtcArbitrage
 
         response = curl.perform
 
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        json_data = nil
+        parsed_json = nil
+
+        begin
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts "Exception occured in 'api_customers_command'"
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
+        end
+
         exchange_rate_object = parsed_json['response']['customer']['exchangeRate']
         exchange_rate = parsed_json['response']['customer']['exchangeRate']['USD']['rate']
         account_balance_in_btc_raw = parsed_json['response']['customer']['accounts'].first['satoshiAvailableBalance']

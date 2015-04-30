@@ -70,7 +70,7 @@ module RbtcArbitrage
         if action == :buy
           #buy = asks
           price_entries = bids_asks_hash[:asks]
-          price_entries.first.first.try(:to_f)
+          price_entries.third.first.try(:to_f)
         else
           #sell = bids
           price_entries = bids_asks_hash[:bids]
