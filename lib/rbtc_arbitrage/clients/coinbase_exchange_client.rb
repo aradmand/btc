@@ -194,11 +194,16 @@ module RbtcArbitrage
         product_id = products_command['id']
 
         request_body = {
-          "size" => size,
+          "size" => size.round(8),
           "price" => price,
           "side" => side,
           "product_id" => product_id
         }
+
+        ###  Debugging
+        puts "*** Request Body ***"
+        puts request_body
+        ###
 
         auth_headers = signature('/orders', request_body, nil, 'POST')
 

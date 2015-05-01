@@ -181,7 +181,7 @@ while enabled == true
   if profit_percent >= MIN_PERCENT_PROFIT
     # Sleep after profitable trade to avoid getting flagged for
     # frequent trades on Circle
-    sleep_time = (2..4).to_a.sample * 60
+    sleep_time = (2..3).to_a.sample * 60
     puts
     puts "******"
     puts "Waiting #{sleep_time / 60} mins (#{sleep_time} seconds) after profitable trade to resume trading ..."
