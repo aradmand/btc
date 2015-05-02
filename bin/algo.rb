@@ -41,6 +41,7 @@ def set_trading_parameters
 end
 
 def trade(buy_exchange, sell_exchange)
+  error_message = ''
   begin
     percent = MIN_PERCENT_PROFIT
     sleep(5.0)
@@ -138,9 +139,10 @@ def trade(buy_exchange, sell_exchange)
     puts " *** Exception has occured *** "
     puts e.message
     puts "************"
+    error_message = e.message
   end
 
-  [profit_dollars, profit_percent, rbtc_arbitrage]
+  [profit_dollars, profit_percent, rbtc_arbitrage, error_message]
 end
 
 def flip_exchanges(exchange_a, exchange_b)
@@ -150,6 +152,10 @@ end
 def no_open_orders?(exchange_a, exchange_b)
   exchange_a.open_orders.size == 0 &&
     exchange_b.open_orders.size == 0
+end
+
+def exception_due_to_insufficient_funds?(message)
+  message == "Not enough funds. Exiting."
 end
 
 set_trading_parameters
@@ -164,7 +170,7 @@ while enabled == true
     exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
   end
 
-  profit, profit_percent, rbtc_arbitrage = trade(exchange_1, exchange_2)
+  profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2)
 
   if @step && profit_percent >= MIN_PERCENT_PROFIT
     binding.pry
@@ -178,7 +184,7 @@ while enabled == true
     sleep(open_order_sleep)
   end
 
-  if profit_percent >= MIN_PERCENT_PROFIT
+  if profit_percent >= MIN_PERCENT_PROFIT && !exception_due_to_insufficient_funds?(error_message)
     # Sleep after profitable trade to avoid getting flagged for
     # frequent trades on Circle
     sleep_time = (2..3).to_a.sample * 60
