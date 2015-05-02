@@ -53,7 +53,7 @@ module RbtcArbitrage
         adjusted_price = adjusted_price.round(2)
 
         amount = override_values.try(:[], :volume) || @options[:volume]
-
+        amount = amount.round(8)
         side = if action == :buy
           'buy'
         else
@@ -90,7 +90,7 @@ module RbtcArbitrage
 
         # First, transfer BTC from CoinbaseExchange BTC acct to Bitcoin Wallet
         volume = override_values.try(:[], :volume) || @options[:volume]
-
+        volume = volume.round(8)
         coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new(self.options.merge({volume: volume}))
         coinbase_account = coinbase_client.account('My Wallet')
 
@@ -112,7 +112,8 @@ module RbtcArbitrage
         # Second, initiate a transfer from Coinbase to CoinbaseExchange
         if coinbase_client_address.present? && transfer_to_exchange
           coinbase_account = coinbase_client.account('My Wallet')
-          transfer_response = transfer_funds_command('deposit', @options[:volume], coinbase_account['id'])
+          volume = @options[:volume].round(8)
+          transfer_response = transfer_funds_command('deposit', volume, coinbase_account['id'])
         end
 
         coinbase_client_address
@@ -138,7 +139,7 @@ module RbtcArbitrage
       def transfer_funds_command(transfer_type, amount, account_id)
         request_body = {
           "type" => transfer_type,
-          "amount" => amount,
+          "amount" => amount.round(8),
           "coinbase_account_id" => account_id
         }
 

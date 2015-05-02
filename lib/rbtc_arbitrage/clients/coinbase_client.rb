@@ -51,7 +51,7 @@ module RbtcArbitrage
       # exchange.
       def transfer(client, override_values = nil)
         volume = override_values.try(:[], :volume) || @options[:volume]
-
+        volume = volume.round(8)
         interface.send_money client.address, volume
       end
 
