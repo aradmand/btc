@@ -314,8 +314,18 @@ module RbtcArbitrage
 
         response = curl.perform
 
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        json_data = nil
+        parsed_json = nil
+
+        begin
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts "Exception occured in 'accounts_command'"
+          binding.pry
+          puts "Exception:"
+          puts e.message
+        end
 
         usd_balance = 0
         btc_balance = 0
