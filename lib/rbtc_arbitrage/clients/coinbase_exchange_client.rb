@@ -312,12 +312,11 @@ module RbtcArbitrage
           http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
         end
 
-        response = curl.perform
-
         json_data = nil
         parsed_json = nil
 
         begin
+          response = curl.perform
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
           parsed_json = JSON.parse(json_data)
         rescue => e
