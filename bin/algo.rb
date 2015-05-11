@@ -26,7 +26,7 @@ require 'rbtc_arbitrage'
 enabled = true
 profit = 0
 
-MIN_PERCENT_PROFIT = 0.56
+MIN_PERCENT_PROFIT = 0.61
 MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 
 

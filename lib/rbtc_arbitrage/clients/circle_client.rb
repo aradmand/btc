@@ -108,9 +108,19 @@ module RbtcArbitrage
           http.headers['x-customer-session-token'] = circle_customer_session_token
         end
 
-        response = curl.perform
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        response = nil
+        json_data = nil
+        parsed_json = nil
+
+        begin
+          response = curl.perform
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts 'Exception occured in api_address_command'
+          binding.pry
+          puts e.message
+        end
 
         circle_bitcoin_address_for_receiving = parsed_json['response']['bitcoinAddress']
       end
@@ -136,10 +146,21 @@ module RbtcArbitrage
           http.headers['x-customer-session-token'] = circle_customer_session_token
         end
 
-        response = curl.perform
+        response = nil
+        json_data = nil
+        parsed_json = nil
 
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        begin
+          response = curl.perform
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts 'Exception occured in fiat_account_command'
+          binding.pry
+          puts e.message
+        end
+
+
         fiat_account_array = parsed_json['response']['fiatAccounts']
 
         fiat_account_id = find_fiat_account_id(fiat_account_array)
@@ -454,12 +475,12 @@ module RbtcArbitrage
           http.headers['x-customer-session-token'] = customer_session_token
         end
 
-        response = curl.perform
-
         json_data = nil
         parsed_json = nil
+        response = nil
 
         begin
+          response = curl.perform
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
           parsed_json = JSON.parse(json_data)
         rescue => e
