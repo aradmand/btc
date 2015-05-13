@@ -278,13 +278,19 @@ module RbtcArbitrage
           http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
         end
 
-        response = curl.perform
+        begin
+          response = curl.perform
 
-        if curl.body_str.length < 5
-          parsed_json = JSON.parse(curl.body_str)
-        else
-          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-          parsed_json = JSON.parse(json_data)
+          if curl.body_str.length < 5
+            parsed_json = JSON.parse(curl.body_str)
+          else
+            json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+            parsed_json = JSON.parse(json_data)
+          end
+        rescue => e
+          puts 'Exception occured in Open Orders command:'
+          binding.pry
+          puts e.message
         end
       end
 
