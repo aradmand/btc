@@ -26,6 +26,14 @@ puts validate_env_result
 validate_env_result.count == 4
 
 
+####################
+# Withdraw Limit
+####################
+
+withdraw_limit_seven_days = circle_client.withdraw_limit_trailing_seven_days
+puts 'Withdraw Limit Trailing 7 Days:'
+puts withdraw_limit_seven_days
+
 
 
 ####################

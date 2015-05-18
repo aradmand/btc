@@ -85,6 +85,12 @@ module RbtcArbitrage
         []
       end
 
+      # Weekly withdraw limit in Cents
+      def withdraw_limit_trailing_seven_days
+        customers_command_result = api_customers_command
+        customers_command_result[:bank_withdraw_trailing_seven_days]
+      end
+
     private
 
       def api_address_command(customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])
@@ -497,13 +503,15 @@ module RbtcArbitrage
         account_balance_in_btc_raw = parsed_json['response']['customer']['accounts'].first['satoshiAvailableBalance']
         account_balance_in_btc_normalized = account_balance_in_btc_raw / 100000000.0
         account_balance_in_usd = exchange_rate * account_balance_in_btc_normalized
+        bank_withdraw_trailing_seven_days = parsed_json['response']['customer']['customerLimits']['bankWithdrawTrailingSevenDays']
 
         {
           exchange_rate_object: exchange_rate_object,
           exchange_rate: exchange_rate,
           account_balance_in_btc_raw: account_balance_in_btc_raw,
           account_balance_in_btc_normalized: account_balance_in_btc_normalized,
-          account_balance_in_usd: account_balance_in_usd
+          account_balance_in_usd: account_balance_in_usd,
+          bank_withdraw_trailing_seven_days: bank_withdraw_trailing_seven_days
         }
       end
 
