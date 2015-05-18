@@ -9,6 +9,28 @@ module RbtcArbitrage
       require 'json'
       require 'active_support/core_ext/object/try'
 
+      def initialize(options = {})
+        if options[:circle_account]
+          circle_account = options[:circle_account]
+          @circle_bank_account_id = circle_account.api_bank_account_id
+          @circle_customer_id = circle_account.api_customer_id
+          @circle_customer_session_token = circle_account.api_customer_session_token
+        end
+        super
+      end
+
+      def circle_bank_account_id
+        @circle_bank_account_id #|| ENV['CIRCLE_BANK_ACCOUNT_ID']
+      end
+
+      def circle_customer_id
+        @circle_customer_id #|| ENV['CIRCLE_CUSTOMER_ID']
+      end
+
+      def circle_customer_session_token
+        @circle_customer_session_token #|| ENV['CIRCLE_CUSTOMER_SESSION_TOKEN']
+      end
+
       # return a symbol as the name
       # of this exchange
       def exchange
@@ -93,7 +115,7 @@ module RbtcArbitrage
 
     private
 
-      def api_address_command(customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])
+      def api_address_command(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
         api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/address"
 
         path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/address"
@@ -131,7 +153,7 @@ module RbtcArbitrage
         circle_bitcoin_address_for_receiving = parsed_json['response']['bitcoinAddress']
       end
 
-      def fiat_account_command(customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'])
+      def fiat_account_command(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token)
         api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/fiatAccounts"
 
         path_header = "/api/v2/customers/#{customer_id}/fiatAccounts"
@@ -235,7 +257,7 @@ module RbtcArbitrage
         api_withdraws_command_result = api_withdraws_command(withdraw_json_data)
       end
 
-      def api_withdraws_command(withdraw_json_data, customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])
+      def api_withdraws_command(withdraw_json_data, customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
         api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdraws"
 
         path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdraws"
@@ -293,7 +315,7 @@ module RbtcArbitrage
         {status: response_code, satoshi_value: satoshi_value_withdrawn}
       end
 
-      def api_deposits_command(deposit_json_data, customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])
+      def api_deposits_command(deposit_json_data, customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
         api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/deposits"
 
         path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/deposits"
@@ -403,7 +425,7 @@ module RbtcArbitrage
       end
 
       ## Circle Uses the transactions command internally to do btc transfers
-      def api_transactions_command(transfer_json_data, customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])
+      def api_transactions_command(transfer_json_data, customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
         btc_transfer_json_data = transfer_json_data.to_json
         content_length = btc_transfer_json_data.length
 
@@ -460,7 +482,7 @@ module RbtcArbitrage
         response_code
       end
 
-      def api_customers_command(customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'])
+      def api_customers_command(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token)
         api_url = "https://www.circle.com/api/v2/customers/#{customer_id}"
 
         path_header = "/api/v2/customers/#{customer_id}"
@@ -525,11 +547,7 @@ module RbtcArbitrage
       end
 
       def circle_cookie
-        ENV['CIRCLE_COOKIE']
-      end
-
-      def circle_customer_session_token
-        ENV['CIRCLE_CUSTOMER_SESSION_TOKEN']
+        'circle'
       end
     end
   end
