@@ -21,9 +21,11 @@ module CircleAccount
       @withdrawn_amount_last_seven_days = withdrawn_amount_last_seven_days
     end
 
-    def configure_state!
-      circle_client = RbtcArbitrage::Clients::CircleClient.new(circle_account: self, volume: 0.01)
+    def circle_client
+      RbtcArbitrage::Clients::CircleClient.new(circle_account: self)
+    end
 
+    def configure_state!
       withdraw_limit = circle_client.withdraw_limit_trailing_seven_days
       self.withdrawn_amount_last_seven_days = withdraw_limit
       if withdrawn_amount_last_seven_days > 400000
@@ -34,15 +36,34 @@ module CircleAccount
     end
 
     def btc_address
-      circle_client = RbtcArbitrage::Clients::CircleClient.new(circle_account: self, volume: 0.01)
       circle_client.address
     end
 
     def transfer_btc_to_active_account(active_account)
+      return unless active_account.present?
 
+      if active_account.state == STATE_ACTIVE &&
+        (self.state == STATE_MAXED_OUT || self.state == STATE_INACTIVE)
+
+        btc_balance, usd_balance = circle_client.balance
+        transfer_amount = (btc_balance - 0.0005).round(5)
+        if btc_balance.round(5) > 0.0005 && transfer_amount > 0
+          circle_client.transfer(active_account.circle_client, {volume: transfer_amount})
+        end
+      end
     end
   end
 end
+
+
+#################################
+#  Adding a new Circle Account
+#
+#  1. Add email address and login credentials to google doc
+#  2. Add entry in circle_accounts.json
+#  3. Log in to new Circle Account and turn 2 factor auth OFF for withdraws and transfers
+#################################
+
 
 
 # ########

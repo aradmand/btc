@@ -57,6 +57,14 @@ end.try(:first)
 puts 'Active Account:'
 puts active_circle_account.try(:email)
 
+
+# Transfer BTC from inactive / maxed_out accounts to
+# Active account:
+circle_accounts_array.each do |account|
+  account.transfer_btc_to_active_account(active_circle_account)
+end
+
+
 # Instantiate Circle Client
 circle_client = RbtcArbitrage::Clients::CircleClient.new(circle_account: active_circle_account, volume: 0.01)
 
@@ -79,7 +87,6 @@ puts 'Withdraw Limit Trailing 7 Days:'
 puts withdraw_limit_seven_days
 
 
-
 ####################
 # Balance
 ####################
@@ -88,8 +95,6 @@ balance_result = circle_client.balance
 
 puts balance_result
 balance_result.count == 2
-
-
 
 
 ####################
