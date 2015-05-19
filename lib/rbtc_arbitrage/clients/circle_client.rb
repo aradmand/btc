@@ -57,7 +57,7 @@ module RbtcArbitrage
       #
       # circle_bank_account_id is the user's bank account that is to be used (ie 186074 in the api call "www.circle.com/api/v2/customers/168900/accounts/186074/deposits")
       def validate_env
-        validate_keys :circle_customer_session_token, :circle_cookie, :circle_customer_id, :circle_bank_account_id
+        validate_keys
       end
 
       # `action` is :buy or :sell

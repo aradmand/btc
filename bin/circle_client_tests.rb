@@ -43,23 +43,21 @@ end
 circle_accounts_array.each do |account|
   if account.state == CircleAccount::CircleAccount::STATE_ACTIVE
     circle_accounts_array.each do |inactive_account|
-      unless account == inactive_account || inactive_account.state = CircleAccount::CircleAccount::STATE_MAXED_OUT
+      unless account == inactive_account || inactive_account.state == CircleAccount::CircleAccount::STATE_MAXED_OUT
         inactive_account.state = CircleAccount::CircleAccount::STATE_INACTIVE
       end
     end
   end
 end
 
+active_circle_account = circle_accounts_array.select do |account|
+  account.state == CircleAccount::CircleAccount::STATE_ACTIVE
+end.try(:first)
 
-# # Run tests for each configured account
-
-
-
-
-
+puts 'Active Account:'
+puts active_circle_account.try(:email)
 
 # Instantiate Circle Client
-active_circle_account = circle_accounts_array.first
 circle_client = RbtcArbitrage::Clients::CircleClient.new(circle_account: active_circle_account, volume: 0.01)
 
 ####################

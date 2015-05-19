@@ -3,7 +3,16 @@
     {
       "api_bank_account_id" : 186074,
       "api_customer_id" : 168900,
-      "api_customer_session_token" : "5e765f784b7250ad94a21b67bfbd69c86b04fd22",
+      "api_customer_session_token" : "a8905da2fae67ca45dad77f5b1cfd3ab4be2b0fb",
+      "state" : "inactive",
+      "withdrawn_amount_last_seven_days" : 0
+    },
+
+  "rinrdmd@gmail.com" :
+    {
+      "api_bank_account_id" : 6937258,
+      "api_customer_id" : 6871309,
+      "api_customer_session_token" : "aaab10fc2921ae1c31bd22682e7eac6bcb515513",
       "state" : "inactive",
       "withdrawn_amount_last_seven_days" : 0
     }

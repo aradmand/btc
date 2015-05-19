@@ -32,6 +32,15 @@ module CircleAccount
         self.state = STATE_ACTIVE
       end
     end
+
+    def btc_address
+      circle_client = RbtcArbitrage::Clients::CircleClient.new(circle_account: self, volume: 0.01)
+      circle_client.address
+    end
+
+    def transfer_btc_to_active_account(active_account)
+
+    end
   end
 end
 
@@ -72,7 +81,8 @@ end
 # ##### SWITCH ACCOUNTS ####
 #   - Check non-active CircleAccounts :
 #     - If CircleAccount is Inactive or maxed_out,
-#       - transfer all BTC from that account to coinbase Exchange
+#       - transfer all BTC from that account to Active Account
+#         -If no other accounts are active, then transfer BTC back to Coinbase
 
 # ########################
 
