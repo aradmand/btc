@@ -1,9 +1,37 @@
-# Delta Algo
+# Epsilon Algo
 #
 # This Algorithm is optimized for arbitrage trading between the circle and
 # coinbase_exchange exchanges.
 #
 # Features of this strategey include:
+# => This is the first strategy capable of trading multiple circle accounts
+# => Since Circle limits our withdraws to $5,000 / week, this strategy is designed
+# => to use multiple circle accounts to stay under this limit. Of Note:
+#
+# => circle_accounts.json
+# => This file has been added as a way to dynamically configure Circle Accounts
+# => Circle env variables are no longer needed to configure circle_client, as all
+# => values come from this file
+#
+# => circle_account.rb
+# => This file has been added to be the in-memory representation of a circle_account.
+# => It will house all necessary env variables needed to make api requests for the
+# => given account.
+
+# THE ALGORITHM:
+  # The algo will read in the circle_accounts.json file to find the first account
+  # eligible to be traded and set it to active.
+
+  # All other accounts will be marked as either INACTIVE or MAXED_OUT
+
+  # The active account will be traded until it becomes MAXED_OUT
+
+  # When it is MAXED_OUT, the algo will repeat the process and scan through
+  # theh list of eligible accounts in circle_accounts.json to choose the next active
+  # account to trade.
+
+
+#  TRADING NOTES:
 # => Before trading, the algo will check to see if any open orders
 #  exist on the coinbase_exchange exchange.  If so, the algo will pause and not continue
 #  trading until there are 0 open orders.
@@ -40,7 +68,7 @@ def set_trading_parameters
   @step = args_hash['--step'] == 'true'
 end
 
-def trade(buy_exchange, sell_exchange)
+def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
   error_message = ''
   begin
     percent = MIN_PERCENT_PROFIT
@@ -162,15 +190,26 @@ set_trading_parameters
 exchange_1 = @buyer
 exchange_2 = @seller
 
+# Read in circle_accounts.json to get first ACTIVE account
+active_circle_account = CircleAccount::CircleAccount.find_active_account
+
 while enabled == true
   set_trading_parameters
   if profit > 0
     # Do Nothing
   else
-    exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
+    if exchange_1 == :circle
+      exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
+    else
+      exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
+    end
   end
 
-  profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2)
+  if exchange_1 == :circle
+    profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2, active_circle_account, nil)
+  else
+    profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2, nil, active_circle_account)
+  end
 
   if @step && profit_percent >= MIN_PERCENT_PROFIT
     binding.pry

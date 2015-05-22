@@ -65,6 +65,18 @@ end
 #################################
 
 
+# THE ALGORITHM:
+  # The algo will read in the circle_accounts.json file to find the first account
+  # eligible to be traded and set it to active.
+
+  # All other accounts will be marked as either INACTIVE or MAXED_OUT
+
+  # The active account will be traded until it becomes MAXED_OUT
+
+  # When it is MAXED_OUT, the algo will repeat the process and scan through
+  # theh list of eligible accounts in circle_accounts.json to choose the next active
+  # account to trade.
+
 
 # ########
 # ****** See if the CIRCLE API GIVE US A WAY TO SEE THE withdraw
