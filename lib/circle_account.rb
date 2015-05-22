@@ -21,18 +21,70 @@ module CircleAccount
       @withdrawn_amount_last_seven_days = withdrawn_amount_last_seven_days
     end
 
-    def circle_client
-      RbtcArbitrage::Clients::CircleClient.new(circle_account: self)
+    def self.consolidate_btc_balances_to_account(active_circle_account)
+      circle_account_hash = read_accounts_configuration_file
+      return nil unless circle_account_hash
+
+      # Determine the state of each account
+      circle_accounts_array = set_circle_accounts_array(circle_account_hash)
+
+      # Iterate through each account and transfer BTC funds if necessary
+      circle_accounts_array.each do |circle_account|
+        next if circle_account.email == active_circle_account.email
+        circle_account.transfer_btc_to_active_account(active_circle_account)
+      end
+    end
+
+    def self.find_active_account(previous_active_account = nil)
+      begin
+        if previous_active_account && previous_active_account.still_active?
+          previous_active_account.configure_state!
+          return previous_active_account
+        end
+      rescue => e
+        puts 'Exception while determining if previous CircleAccount is still active'
+        puts e.message
+      end
+
+      circle_account_hash = read_accounts_configuration_file
+      return nil unless circle_account_hash
+
+      # Determine the state of each account
+      circle_accounts_array = set_circle_accounts_array(circle_account_hash)
+
+      # Set only one account to active
+      circle_accounts_array.each do |account|
+        if account.state == STATE_ACTIVE
+          circle_accounts_array.each do |inactive_account|
+            unless account == inactive_account || inactive_account.state == STATE_MAXED_OUT
+              inactive_account.state = STATE_INACTIVE
+            end
+          end
+        end
+      end
+
+      active_circle_account = circle_accounts_array.select do |account|
+        account.state == STATE_ACTIVE
+      end.try(:first)
+    end
+
+    def circle_client(config = {})
+      RbtcArbitrage::Clients::CircleClient.new({circle_account: self}.merge(config))
     end
 
     def configure_state!
-      withdraw_limit = circle_client.withdraw_limit_trailing_seven_days
+      withdraw_limit = circle_client.withdraw_limit_trailing_seven_days(false)
       self.withdrawn_amount_last_seven_days = withdraw_limit
       if withdrawn_amount_last_seven_days > 400000
         self.state = STATE_MAXED_OUT
       else
         self.state = STATE_ACTIVE
       end
+    end
+
+    def still_active?
+      withdraw_limit = circle_client.withdraw_limit_trailing_seven_days(false)
+      withdraw_limit < 400000
     end
 
     def btc_address
@@ -51,6 +103,45 @@ module CircleAccount
           circle_client.transfer(active_account.circle_client, {volume: transfer_amount})
         end
       end
+    end
+
+    private
+
+    def self.read_accounts_configuration_file
+      begin
+        circle_accounts_file = File.read('lib/circle_accounts.json')
+        circle_account_hash = JSON.parse(circle_accounts_file)
+      rescue => e
+        puts 'Exception while parsing confguration file circle_accounts.json.  Please check for properly formatted JSON!'
+        puts e.message
+        return nil
+      end
+    end
+
+    def self.set_circle_accounts_array(circle_account_hash)
+      circle_accounts_array = []
+
+      # Determine the state of each account
+      circle_account_hash.each do |email, account|
+        circle_account = CircleAccount.new(
+          account['api_bank_account_id'],
+          account['api_customer_id'],
+          account['api_customer_session_token'],
+          account['state'],
+          account['withdrawn_amount_last_seven_days'],
+          email
+        )
+
+        begin
+          circle_account.configure_state!
+        rescue => e
+          puts "Unable to configure account [ #{email} ]"
+          next
+        end
+
+        circle_accounts_array << circle_account
+      end
+      circle_accounts_array
     end
   end
 end
@@ -73,8 +164,11 @@ end
 
   # The active account will be traded until it becomes MAXED_OUT
 
+  # The algo will transfer outstanding BTC balances from all MAXED_OUT or INACTIVE
+  #  accounts to the current ACTIVE account
+
   # When it is MAXED_OUT, the algo will repeat the process and scan through
-  # theh list of eligible accounts in circle_accounts.json to choose the next active
+  # the list of eligible accounts in circle_accounts.json to choose the next active
   # account to trade.
 
 

@@ -49,6 +49,7 @@ require 'pry'
 
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require 'rbtc_arbitrage'
+require 'circle_account'
 
 @accumulated_profit_in_cents = 0
 enabled = true
@@ -82,14 +83,21 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
     puts "#=================="
     puts "[Timestamp - #{start_time}]"
 
-    # If CampBx is the sell exchange, try to match the quantity of
-    # top of book to increase the chances of a match in the event of
-    # AON order types.
-    if sell_exchange == :campbx
-
+    set_circle_account_hash = if circle_buy_client
+      {buyer_circle_account: circle_buy_client}
+    elsif circle_sell_client
+      {seller_circle_account: circle_sell_client}
+    else
+      {}
     end
 
-    options = { buyer: buy_exchange, seller: sell_exchange, volume: @volume, cutoff: percent, verbose: true}
+    options = {
+      buyer: buy_exchange,
+      seller: sell_exchange,
+      volume: @volume,
+      cutoff: percent,
+      verbose: true
+    }.merge(set_circle_account_hash)
 
     ####### This turns on live trading #####
     if @live == true
@@ -101,27 +109,6 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
     ########################################
 
     rbtc_arbitrage = RbtcArbitrage::Trader.new(options)
-
-
-    # If CampBx is the sell exchange, try to match the quantity of
-    # top of book to increase the chances of a match in the event of
-    # AON order types.
-    if sell_exchange == :campbx
-      buyer_btc_balance, buyer_usd_balance = rbtc_arbitrage.get_buyer_balance
-      seller_btc_balance, seller_usd_balance = rbtc_arbitrage.get_seller_balance
-
-      top_of_book_quantity = rbtc_arbitrage.sell_client.top_of_book_quantity(:sell)
-      if top_of_book_quantity &&
-        top_of_book_quantity <= buyer_btc_balance &&
-        top_of_book_quantity <= seller_btc_balance &&
-        top_of_book_quantity <= MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE
-
-        new_volume = top_of_book_quantity
-        options.merge!({volume: new_volume})
-
-        rbtc_arbitrage = RbtcArbitrage::Trader.new(options)
-      end
-    end
 
     command = "rbtc --seller #{options[:seller]} --buyer #{options[:buyer]} --volume #{options[:volume]} --cutoff #{options[:cutoff]}"
 
@@ -189,11 +176,21 @@ end
 set_trading_parameters
 exchange_1 = @buyer
 exchange_2 = @seller
-
-# Read in circle_accounts.json to get first ACTIVE account
-active_circle_account = CircleAccount::CircleAccount.find_active_account
+active_circle_account = nil
 
 while enabled == true
+  # Read in circle_accounts.json to get first ACTIVE account
+  active_circle_account = CircleAccount::CircleAccount.find_active_account(active_circle_account)
+
+  # Transfer outstanding BTC balances from non-active accounts to the current Active Account
+  CircleAccount::CircleAccount.consolidate_btc_balances_to_account(active_circle_account)
+
+  if active_circle_account.blank?
+    puts "No active Circle Account set! Please fix this error before continuing!"
+    sleep(15)
+    next
+  end
+
   set_trading_parameters
   if profit > 0
     # Do Nothing

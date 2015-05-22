@@ -30,9 +30,9 @@ module RbtcArbitrage
       seller_circle_account = opts[:seller_circle_account]
 
       exchange = opts[:buyer] || :bitstamp
-      @buy_client = buyer_circle_account || client_for_exchange(exchange)
+      @buy_client = buyer_circle_account.try(:circle_client, @options) || client_for_exchange(exchange)
       exchange = opts[:seller] || :campbx
-      @sell_client = seller_circle_account || client_for_exchange(exchange)
+      @sell_client = seller_circle_account.try(:circle_client, @options) || client_for_exchange(exchange)
       validate_env
       self
     end
@@ -142,9 +142,7 @@ module RbtcArbitrage
       end
     end
 
-    def client_for_exchange(market, desired_client = nil)
-      return desired_client if desired_client
-
+    def client_for_exchange(market)
       market = market.to_sym unless market.is_a?(Symbol)
       clazz = RbtcArbitrage::Clients.constants.find do |c|
         clazz = RbtcArbitrage::Clients.const_get(c)

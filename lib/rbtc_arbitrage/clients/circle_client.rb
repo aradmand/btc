@@ -40,10 +40,10 @@ module RbtcArbitrage
       # Returns an array of Floats.
       # The first element is the balance in BTC;
       # The second is in USD.
-      def balance
+      def balance(break_for_errors = true)
         return @balance if @balance.present?
 
-        result = api_customers_command
+        result = api_customers_command(circle_customer_id, circle_customer_session_token, break_for_errors)
 
         @balance = [ result[:account_balance_in_btc_normalized], result[:account_balance_in_usd] ]
       end
@@ -108,8 +108,8 @@ module RbtcArbitrage
       end
 
       # Weekly withdraw limit in Cents
-      def withdraw_limit_trailing_seven_days
-        customers_command_result = api_customers_command
+      def withdraw_limit_trailing_seven_days(break_for_errors = true)
+        customers_command_result = api_customers_command(circle_customer_id, circle_customer_session_token, break_for_errors)
         customers_command_result[:bank_withdraw_trailing_seven_days]
       end
 
@@ -482,7 +482,7 @@ module RbtcArbitrage
         response_code
       end
 
-      def api_customers_command(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token)
+      def api_customers_command(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, break_for_errors = true)
         api_url = "https://www.circle.com/api/v2/customers/#{customer_id}"
 
         path_header = "/api/v2/customers/#{customer_id}"
@@ -513,7 +513,7 @@ module RbtcArbitrage
           parsed_json = JSON.parse(json_data)
         rescue => e
           puts "Exception occured in 'api_customers_command'"
-          binding.pry
+          binding.pry if break_for_errors
           puts "curl.body_str:"
           puts curl.body_str
           puts "Exception:"
