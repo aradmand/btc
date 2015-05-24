@@ -94,12 +94,11 @@ module CircleAccount
     def transfer_btc_to_active_account(active_account)
       return unless active_account.present?
 
-      if active_account.state == STATE_ACTIVE &&
-        (self.state == STATE_MAXED_OUT || self.state == STATE_INACTIVE)
-
+      if active_account.state == STATE_ACTIVE
         btc_balance, usd_balance = circle_client.balance
         transfer_amount = (btc_balance - 0.0005).round(5)
         if btc_balance.round(5) > 0.0005 && transfer_amount > 0
+          puts "Transferring #{transfer_amount} BTC to Active Circle Account [#{active_account.email}]"
           circle_client.transfer(active_account.circle_client, {volume: transfer_amount})
         end
       end

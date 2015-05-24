@@ -180,9 +180,12 @@ active_circle_account = nil
 
 while enabled == true
   # Read in circle_accounts.json to get first ACTIVE account
+  puts "Finding Active Circle Account ..."
   active_circle_account = CircleAccount::CircleAccount.find_active_account(active_circle_account)
+  puts "Using Circle Account [#{active_circle_account.email}]"
 
   # Transfer outstanding BTC balances from non-active accounts to the current Active Account
+  puts "Consolidating BTC balances to active account if necessary ..."
   CircleAccount::CircleAccount.consolidate_btc_balances_to_account(active_circle_account)
 
   if active_circle_account.blank?
@@ -223,10 +226,10 @@ while enabled == true
   if profit_percent >= MIN_PERCENT_PROFIT && !exception_due_to_insufficient_funds?(error_message)
     # Sleep after profitable trade to avoid getting flagged for
     # frequent trades on Circle
-    sleep_time = (1..2).to_a.sample * 60
+    sleep_time = 30
     puts
     puts "******"
-    puts "Waiting #{sleep_time / 60} mins (#{sleep_time} seconds) after profitable trade to resume trading ..."
+    puts "Waiting #{(sleep_time.to_f / 60)} mins (#{sleep_time} seconds) after profitable trade to resume trading ..."
     puts "******"
     puts
 
