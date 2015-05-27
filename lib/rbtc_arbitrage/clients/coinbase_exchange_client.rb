@@ -68,22 +68,22 @@ module RbtcArbitrage
       # Returns a Numeric type.
       def price action
         bids_asks_hash = order_book_command(action)
-        if action == :buy
-          #buy = asks
-          price_entries = bids_asks_hash[:asks]
-          price_entries.first.first.try(:to_f)
-          price_ask = price_entries.first.first.try(:to_f)
-        else
-          #sell = bids
-          price_entries = bids_asks_hash[:bids]
-          price_entries.first.first.try(:to_f)
-          price_bid = price_entries.first.first.try(:to_f)
-        end
+        # price_ask = nil
+        # price_bid = nil
+        price_entries = bids_asks_hash[:asks]
+        price_ask = price_entries.first.first.try(:to_f)
+        price_entries = bids_asks_hash[:bids]
+        price_bid = price_entries.first.first.try(:to_f)
+
+      #binding.pry
         time = Time.now.strftime("%B %d, %Y")
         time_of_day = Time.now.to_formatted_s(:time)
         CSV.open( "/Users/joshthedudeoflife/btc-gamma/coinbase_exchange_logger.csv", 'a+' ) do |writer|
             writer << [time, time_of_day, price_bid, price_ask]
         end
+        # CSV.open( "/Users/joshthedudeoflife/btc-gamma/consolidated.csv", 'a+' ) do |writer|
+        #     writer << ["Circle",time, time_of_day, price_bid, price_ask]
+        # end
         # Return proper value
         if action == :buy
           price_ask

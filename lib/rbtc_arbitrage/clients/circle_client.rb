@@ -74,7 +74,17 @@ module RbtcArbitrage
       def price action
         result = api_customers_command
         exchange_rate = result[:exchange_rate]
-        exchange_rate.to_f
+        price = exchange_rate.to_f
+        csvrate = exchange_rate.to_f
+        time = Time.now.strftime("%B %d, %Y")
+        time_of_day = Time.now.to_formatted_s(:time)
+        CSV.open( "/Users/joshthedudeoflife/btc-gamma/circle.csv", 'a+' ) do |writer|
+            writer << [time, time_of_day, csvrate]
+        end
+        # CSV.open( "/Users/joshthedudeoflife/btc-gamma/consolidated.csv", 'a+' ) do |writer|
+        #     writer << [time, time_of_day, csvrate]
+        # end
+        price
       end
 
       # Transfers BTC to the address of a different
