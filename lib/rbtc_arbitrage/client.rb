@@ -6,7 +6,7 @@ module RbtcArbitrage
     def initialize config={}
       @options = config
       @options = {}
-      set_key config, :volume, 0.011
+      set_key config, :volume, 0.01
       set_key config, :cutoff, 2
       set_key config, :logger, Logger.new(STDOUT)
       set_key config, :verbose, true
@@ -23,12 +23,12 @@ module RbtcArbitrage
       end
     end
 
-    def buy
-      trade :buy
+    def buy(override_values = nil)
+      trade(:buy, override_values)
     end
 
-    def sell
-      trade :sell
+    def sell(override_values = nil)
+      trade(:sell, override_values)
     end
 
     def address
@@ -37,6 +37,10 @@ module RbtcArbitrage
 
     def logger
       @options[:logger]
+    end
+
+    def exchange_fee
+      0
     end
 
     private

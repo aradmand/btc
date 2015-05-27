@@ -25,10 +25,14 @@ module RbtcArbitrage
       set_key opts, :live, false
       set_key opts, :repeat, nil
       set_key opts, :notify, false
+
+      buyer_circle_account = opts[:buyer_circle_account]
+      seller_circle_account = opts[:seller_circle_account]
+
       exchange = opts[:buyer] || :bitstamp
-      @buy_client = client_for_exchange(exchange)
+      @buy_client = buyer_circle_account.try(:circle_client, @options) || client_for_exchange(exchange)
       exchange = opts[:seller] || :campbx
-      @sell_client = client_for_exchange(exchange)
+      @sell_client = seller_circle_account.try(:circle_client, @options) || client_for_exchange(exchange)
       validate_env
       self
     end
@@ -138,7 +142,7 @@ module RbtcArbitrage
       end
     end
 
-    def client_for_exchange market
+    def client_for_exchange(market)
       market = market.to_sym unless market.is_a?(Symbol)
       clazz = RbtcArbitrage::Clients.constants.find do |c|
         clazz = RbtcArbitrage::Clients.const_get(c)
@@ -152,11 +156,17 @@ module RbtcArbitrage
       end
     end
 
+    def self.get_btc_from_satoshi_value(satoshi_value)
+      # A Satoshi is the smallest denomination of BTC
+      # 1 Satoshi = 0.00000001 BTC
+      satoshi_value * 0.00000001
+    end
+
     private
 
     def calculate_profit
-      @paid = buyer[:price] * 1.006 * @options[:volume]
-      @received = seller[:price] * 0.994 * @options[:volume]
+      @paid = (buyer[:price] * @options[:volume]) + (buyer[:price] * @options[:volume] * buy_client.exchange_fee)
+      @received = (seller[:price] * @options[:volume]) - (seller[:price] * @options[:volume] * sell_client.exchange_fee)
       @percent = ((received/@paid - 1) * 100).round(2)
     end
 
@@ -165,11 +175,28 @@ module RbtcArbitrage
         raise SecurityError, "Not enough funds. Exiting."
       else
         logger.info "Trading live!" if options[:verbose]
-        @buy_client.buy
-        @sell_client.sell
-        @buy_client.transfer @sell_client
+
+        # If we're dealing with the Circle Exchange,
+        # match the BTC value of whatever was just bought / sold
+        if @buy_client.exchange == :circle
+          buy_result = @buy_client.buy
+          btc_volume = Trader.get_btc_from_satoshi_value(buy_result[:satoshi_value])
+          @sell_client.sell(volume: btc_volume)
+          @buy_client.transfer(@sell_client, volume: btc_volume)
+
+        elsif @sell_client.exchange == :circle
+          sell_result = @sell_client.sell
+          btc_volume = Trader.get_btc_from_satoshi_value(sell_result[:satoshi_value])
+          @buy_client.buy(volume: btc_volume)
+          @buy_client.transfer(@sell_client, volume: btc_volume)
+
+        else
+          # Normal
+          @buy_client.buy
+          @sell_client.sell
+          @buy_client.transfer @sell_client
+        end
       end
     end
-
   end
 end

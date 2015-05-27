@@ -7,6 +7,29 @@ module RbtcArbitrage
       require 'curb'
       require 'active_support'
       require 'json'
+      require 'active_support/core_ext/object/try'
+
+      def initialize(options = {})
+        if options[:circle_account]
+          circle_account = options[:circle_account]
+          @circle_bank_account_id = circle_account.api_bank_account_id
+          @circle_customer_id = circle_account.api_customer_id
+          @circle_customer_session_token = circle_account.api_customer_session_token
+        end
+        super
+      end
+
+      def circle_bank_account_id
+        @circle_bank_account_id #|| ENV['CIRCLE_BANK_ACCOUNT_ID']
+      end
+
+      def circle_customer_id
+        @circle_customer_id #|| ENV['CIRCLE_CUSTOMER_ID']
+      end
+
+      def circle_customer_session_token
+        @circle_customer_session_token #|| ENV['CIRCLE_CUSTOMER_SESSION_TOKEN']
+      end
 
       # return a symbol as the name
       # of this exchange
@@ -17,10 +40,10 @@ module RbtcArbitrage
       # Returns an array of Floats.
       # The first element is the balance in BTC;
       # The second is in USD.
-      def balance
+      def balance(break_for_errors = true)
         return @balance if @balance.present?
 
-        result = api_customers_command
+        result = api_customers_command(circle_customer_id, circle_customer_session_token, break_for_errors)
 
         @balance = [ result[:account_balance_in_btc_normalized], result[:account_balance_in_usd] ]
       end
@@ -34,11 +57,11 @@ module RbtcArbitrage
       #
       # circle_bank_account_id is the user's bank account that is to be used (ie 186074 in the api call "www.circle.com/api/v2/customers/168900/accounts/186074/deposits")
       def validate_env
-        validate_keys :circle_customer_session_token, :circle_cookie, :circle_customer_id, :circle_bank_account_id
+        validate_keys
       end
 
       # `action` is :buy or :sell
-      def trade action
+      def trade(action, override_values = nil)
         if action == :buy
           buy_btc(@options[:volume])
         else
@@ -61,9 +84,15 @@ module RbtcArbitrage
       #  Higher, or this transfer method will NOT work.
       #  As a result, the default volume to exchange has been changed
       #  to 0.011 BTC
-      def transfer(other_client)
-        volume = @options[:volume]
-        transfer_btc(volume, other_client)
+      def transfer(other_client, override_values = nil)
+        if other_client.exchange == :coinbase_exchange
+          client_address = other_client.address(true)
+          volume = override_values.try(:[], :volume) || @options[:volume]
+          transfer_btc(volume, other_client)
+        else
+          volume = override_values.try(:[], :volume) || @options[:volume]
+          transfer_btc(volume, other_client)
+        end
       end
 
       # If there is an API method to fetch your
@@ -74,9 +103,19 @@ module RbtcArbitrage
         api_address_command
       end
 
+      def open_orders
+        []
+      end
+
+      # Weekly withdraw limit in Cents
+      def withdraw_limit_trailing_seven_days(break_for_errors = true)
+        customers_command_result = api_customers_command(circle_customer_id, circle_customer_session_token, break_for_errors)
+        customers_command_result[:bank_withdraw_trailing_seven_days]
+      end
+
     private
 
-      def api_address_command(customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])
+      def api_address_command(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
         api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/address"
 
         path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/address"
@@ -97,14 +136,24 @@ module RbtcArbitrage
           http.headers['x-customer-session-token'] = circle_customer_session_token
         end
 
-        response = curl.perform
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        response = nil
+        json_data = nil
+        parsed_json = nil
+
+        begin
+          response = curl.perform
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts 'Exception occured in api_address_command'
+          binding.pry
+          puts e.message
+        end
 
         circle_bitcoin_address_for_receiving = parsed_json['response']['bitcoinAddress']
       end
 
-      def fiat_account_command(customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'])
+      def fiat_account_command(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token)
         api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/fiatAccounts"
 
         path_header = "/api/v2/customers/#{customer_id}/fiatAccounts"
@@ -125,10 +174,21 @@ module RbtcArbitrage
           http.headers['x-customer-session-token'] = circle_customer_session_token
         end
 
-        response = curl.perform
+        response = nil
+        json_data = nil
+        parsed_json = nil
 
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        begin
+          response = curl.perform
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts 'Exception occured in fiat_account_command'
+          binding.pry
+          puts e.message
+        end
+
+
         fiat_account_array = parsed_json['response']['fiatAccounts']
 
         fiat_account_id = find_fiat_account_id(fiat_account_array)
@@ -197,7 +257,7 @@ module RbtcArbitrage
         api_withdraws_command_result = api_withdraws_command(withdraw_json_data)
       end
 
-      def api_withdraws_command(withdraw_json_data, customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])
+      def api_withdraws_command(withdraw_json_data, customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
         api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdraws"
 
         path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdraws"
@@ -224,8 +284,20 @@ module RbtcArbitrage
           http.headers['x-customer-session-token'] = circle_customer_session_token
         end
 
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        json_data = nil
+        parsed_json = nil
+        begin
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts "Exception occured in 'api_withdraws_command'"
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
+        end
+
 
         withdraw_response_status = parsed_json
         response_code = withdraw_response_status['response']['status']['code']
@@ -238,10 +310,12 @@ module RbtcArbitrage
           puts 'Withdraw Details:'
           puts withdraw_response_status
         end
-        response_code
+
+        satoshi_value_withdrawn = withdraw_response_status['response']['transaction']['satoshiValue']
+        {status: response_code, satoshi_value: satoshi_value_withdrawn}
       end
 
-      def api_deposits_command(deposit_json_data, customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])
+      def api_deposits_command(deposit_json_data, customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
         api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/deposits"
 
         path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/deposits"
@@ -268,8 +342,18 @@ module RbtcArbitrage
           http.headers['x-customer-session-token'] = circle_customer_session_token
         end
 
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        json_data = nil
+        parsed_json = nil
+        begin
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts 'Exception occured in api_deposits_command:'
+          binding.pry
+          puts e.message
+          puts 'curl.body_str:'
+          puts curl.body_str
+        end
 
         deposit_response_status = parsed_json
         response_code = deposit_response_status['response']['status']['code']
@@ -282,10 +366,15 @@ module RbtcArbitrage
           puts 'Deposit Details:'
           puts deposit_response_status
         end
-        response_code
+
+        satoshi_value_deposited = deposit_response_status['response']['transaction']['satoshiValue']
+        {status: response_code, satoshi_value: satoshi_value_deposited}
       end
 
       def calculate_satoshi_value(fiat_value, exchange_rate)
+        # A Satoshi is the smallest denomination of BTC
+        # 1 Satoshi = 0.00000001 BTC
+
         satoshi_value = (fiat_value / exchange_rate.to_f).round(18)
         saftey_index = 0
 
@@ -336,7 +425,7 @@ module RbtcArbitrage
       end
 
       ## Circle Uses the transactions command internally to do btc transfers
-      def api_transactions_command(transfer_json_data, customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'], circle_bank_account_id = ENV['CIRCLE_BANK_ACCOUNT_ID'])
+      def api_transactions_command(transfer_json_data, customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
         btc_transfer_json_data = transfer_json_data.to_json
         content_length = btc_transfer_json_data.length
 
@@ -365,8 +454,19 @@ module RbtcArbitrage
           http.headers['x-customer-session-token'] = customer_session_token
         end
 
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        json_data = nil
+        parsed_json = nil
+
+        begin
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts 'Exception occured in api_transactions_command:'
+          binding.pry
+          puts e.message
+          puts 'curl.body_str:'
+          puts curl.body_str
+        end
 
         btc_transfer_response_status = parsed_json
         response_code = btc_transfer_response_status['response']['status']['code']
@@ -382,7 +482,7 @@ module RbtcArbitrage
         response_code
       end
 
-      def api_customers_command(customer_id = ENV['CIRCLE_CUSTOMER_ID'], customer_session_token = ENV['CIRCLE_CUSTOMER_SESSION_TOKEN'])
+      def api_customers_command(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, break_for_errors = true)
         api_url = "https://www.circle.com/api/v2/customers/#{customer_id}"
 
         path_header = "/api/v2/customers/#{customer_id}"
@@ -403,22 +503,37 @@ module RbtcArbitrage
           http.headers['x-customer-session-token'] = customer_session_token
         end
 
-        response = curl.perform
+        json_data = nil
+        parsed_json = nil
+        response = nil
 
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        begin
+          response = curl.perform
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts "Exception occured in 'api_customers_command'"
+          binding.pry if break_for_errors
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
+        end
+
         exchange_rate_object = parsed_json['response']['customer']['exchangeRate']
         exchange_rate = parsed_json['response']['customer']['exchangeRate']['USD']['rate']
         account_balance_in_btc_raw = parsed_json['response']['customer']['accounts'].first['satoshiAvailableBalance']
         account_balance_in_btc_normalized = account_balance_in_btc_raw / 100000000.0
         account_balance_in_usd = exchange_rate * account_balance_in_btc_normalized
+        bank_withdraw_trailing_seven_days = parsed_json['response']['customer']['customerLimits']['bankWithdrawTrailingSevenDays']
 
         {
           exchange_rate_object: exchange_rate_object,
           exchange_rate: exchange_rate,
           account_balance_in_btc_raw: account_balance_in_btc_raw,
           account_balance_in_btc_normalized: account_balance_in_btc_normalized,
-          account_balance_in_usd: account_balance_in_usd
+          account_balance_in_usd: account_balance_in_usd,
+          bank_withdraw_trailing_seven_days: bank_withdraw_trailing_seven_days
         }
       end
 
@@ -428,15 +543,11 @@ module RbtcArbitrage
       #  for buying and selling BTC.
       ###
       def fiat_account_description
-        "BANK OF AMERICA, N.A. ****4655"
+        "BANK OF AMERICA, N.A. ****5798"
       end
 
       def circle_cookie
-        ENV['CIRCLE_COOKIE']
-      end
-
-      def circle_customer_session_token
-        ENV['CIRCLE_CUSTOMER_SESSION_TOKEN']
+        'circle'
       end
     end
   end

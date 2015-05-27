@@ -9,11 +9,16 @@ module RbtcArbitrage
       require 'json'
       require 'base64'
       require 'openssl'
+      require 'active_support/core_ext/object/try'
 
       # return a symbol as the name
       # of this exchange
       def exchange
         :coinbase_exchange
+      end
+
+      def exchange_fee
+        0.0025
       end
 
       # Returns an array of Floats.
@@ -38,16 +43,17 @@ module RbtcArbitrage
       end
 
       # `action` is :buy or :sell
-      def trade action
+      def trade(action, override_values = nil)
         price = price(action)
         multiple = {
           buy: 1,
           sell: -1,
         }[action]
-        adjusted_price = price + 0.001 * multiple
+        adjusted_price = price + 0.01 * multiple
         adjusted_price = adjusted_price.round(2)
-        # binding.pry
-        amount = @options[:volume]
+
+        amount = override_values.try(:[], :volume) || @options[:volume]
+        amount = amount.round(8)
 
         side = if action == :buy
           'buy'
@@ -67,7 +73,6 @@ module RbtcArbitrage
           price_entries = bids_asks_hash[:asks]
           price_entries.first.first.try(:to_f)
           price_ask = price_entries.first.first.try(:to_f)
-         
         else
           #sell = bids
           price_entries = bids_asks_hash[:bids]
@@ -75,7 +80,7 @@ module RbtcArbitrage
           price_bid = price_entries.first.first.try(:to_f)
         end
         time = Time.now.strftime("%B %d, %Y")
-        time_of_day = Time.now.to_formatted_s(:time) 
+        time_of_day = Time.now.to_formatted_s(:time)
         CSV.open( "/Users/joshthedudeoflife/btc-gamma/coinbase_exchange_logger.csv", 'a+' ) do |writer|
             writer << [time, time_of_day, price_bid, price_ask]
         end
@@ -86,10 +91,10 @@ module RbtcArbitrage
           price_bid
         end
       end
-      
+
       # Transfers BTC to the address of a different
       # exchange.
-      def transfer client
+      def transfer(client, override_values = nil)
         # With CoinbaseExchange, this is a 2-step process:
         # 1.) Transfer BTC from CoinbaseExchange BTC account to
         # Bitcoin.com's BTC Wallet
@@ -98,13 +103,15 @@ module RbtcArbitrage
         # client address.
 
         # First, transfer BTC from CoinbaseExchange BTC acct to Bitcoin Wallet
-        coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new(self.options)
+        volume = override_values.try(:[], :volume) || @options[:volume]
+        volume = volume.round(8)
+        coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new(self.options.merge({volume: volume}))
         coinbase_account = coinbase_client.account('My Wallet')
 
-        transfer_response = transfer_funds_command('withdraw', @options[:volume], coinbase_account['id'])
+        transfer_response = transfer_funds_command('withdraw', volume, coinbase_account['id'])
 
         # Second, transfer BTC from Coinbase BTC Wallet to the desired client
-        coinbase_transfer_response = coinbase_client.transfer(client)
+        coinbase_transfer_response = coinbase_client.transfer(client, {volume: volume})
       end
 
       # If there is an API method to fetch your
@@ -119,7 +126,8 @@ module RbtcArbitrage
         # Second, initiate a transfer from Coinbase to CoinbaseExchange
         if coinbase_client_address.present? && transfer_to_exchange
           coinbase_account = coinbase_client.account('My Wallet')
-          transfer_response = transfer_funds_command('deposit', @options[:volume], coinbase_account['id'])
+          volume = @options[:volume].round(8)
+          transfer_response = transfer_funds_command('deposit', volume, coinbase_account['id'])
         end
 
         coinbase_client_address
@@ -145,7 +153,7 @@ module RbtcArbitrage
       def transfer_funds_command(transfer_type, amount, account_id)
         request_body = {
           "type" => transfer_type,
-          "amount" => amount,
+          "amount" => amount.round(8),
           "coinbase_account_id" => account_id
         }
 
@@ -191,6 +199,8 @@ module RbtcArbitrage
         rescue
           puts "Error while reading response in transfer_funds_command:"
           puts curl.body_str
+          puts "Original request_body:"
+          puts request_body
           return nil
         end
       end
@@ -199,12 +209,12 @@ module RbtcArbitrage
         product_id = products_command['id']
 
         request_body = {
-          "size" => size,
+          "size" => size.round(8),
           "price" => price,
           "side" => side,
           "product_id" => product_id
         }
-        binding.pry
+
         auth_headers = signature('/orders', request_body, nil, 'POST')
 
         api_url = "#{exchange_api_url}/orders"
@@ -246,6 +256,9 @@ module RbtcArbitrage
         rescue
           puts "Error while reading response:"
           puts curl.body_str
+          puts "Original Request Body:"
+          puts request_body
+          binding.pry
           return nil
         end
       end
@@ -274,13 +287,19 @@ module RbtcArbitrage
           http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
         end
 
-        response = curl.perform
+        begin
+          response = curl.perform
 
-        if curl.body_str.length < 5
-          parsed_json = JSON.parse(curl.body_str)
-        else
-          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-          parsed_json = JSON.parse(json_data)
+          if curl.body_str.length < 5
+            parsed_json = JSON.parse(curl.body_str)
+          else
+            json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+            parsed_json = JSON.parse(json_data)
+          end
+        rescue => e
+          puts 'Exception occured in Open Orders command:'
+          binding.pry
+          puts e.message
         end
       end
 
@@ -308,10 +327,19 @@ module RbtcArbitrage
           http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
         end
 
-        response = curl.perform
+        json_data = nil
+        parsed_json = nil
 
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
+        begin
+          response = curl.perform
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts "Exception occured in 'accounts_command'"
+          binding.pry
+          puts "Exception:"
+          puts e.message
+        end
 
         usd_balance = 0
         btc_balance = 0

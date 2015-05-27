@@ -1,43 +1,79 @@
-# Gamma Algo
+# Epsilon Algo
+#
+# This Algorithm is optimized for arbitrage trading between the circle and
+# coinbase_exchange exchanges.
 #
 # Features of this strategey include:
+# => This is the first strategy capable of trading multiple circle accounts
+# => Since Circle limits our withdraws to $5,000 / week, this strategy is designed
+# => to use multiple circle accounts to stay under this limit. Of Note:
+#
+# => circle_accounts.json
+# => This file has been added as a way to dynamically configure Circle Accounts
+# => Circle env variables are no longer needed to configure circle_client, as all
+# => values come from this file
+#
+# => circle_account.rb
+# => This file has been added to be the in-memory representation of a circle_account.
+# => It will house all necessary env variables needed to make api requests for the
+# => given account.
+
+# THE ALGORITHM:
+  # The algo will read in the circle_accounts.json file to find the first account
+  # eligible to be traded and set it to active.
+
+  # All other accounts will be marked as either INACTIVE or MAXED_OUT
+
+  # The active account will be traded until it becomes MAXED_OUT
+
+  # When it is MAXED_OUT, the algo will repeat the process and scan through
+  # theh list of eligible accounts in circle_accounts.json to choose the next active
+  # account to trade.
+
+
+#  TRADING NOTES:
 # => Before trading, the algo will check to see if any open orders
-#  exist on either exchange.  If so, the algo will pause and not continue
+#  exist on the coinbase_exchange exchange.  If so, the algo will pause and not continue
 #  trading until there are 0 open orders.
 #
-# => The 'volume' quantity of the selling exchange will be matched to the current
-#  quantity of the top of book 'Bid' order on the sell exchange (if the order quantity
-#  is less than the volume of BTC we have on hand at the exchange).  This should help
-#  guard against orders sitting open due to non-matches for AON
+# => Before trading, BTC balances on either exchange will be checked to ensure
+#   there are enough funds available to trade.
+#
+#
+# => Profit is only recorded against the accumulated total
+#   if there was enough balance in each of the exchanges and the trade was
+#   actually executed.
 
 require 'date'
 require 'pry'
 
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require 'rbtc_arbitrage'
+require 'circle_account'
 
 @accumulated_profit_in_cents = 0
 enabled = true
 profit = 0
 
-MIN_PERCENT_PROFIT = 1
-MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.25
+MIN_PERCENT_PROFIT = 0.61
+MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 
 
 def set_trading_parameters
-  @buyer = ENV['BTC_BUYER'].try(:to_sym) || :campbx
+  @buyer = ENV['BTC_BUYER'].try(:to_sym) || :circle
   @seller = ENV['BTC_SELLER'].try(:to_sym) || :coinbase_exchange
-  @volume = 0.1
+  @volume = 0.4
 
   args_hash = Hash[*ARGV]
   @live = args_hash['--live'] == 'true'
   @step = args_hash['--step'] == 'true'
 end
 
-def trade(buy_exchange, sell_exchange)
+def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
+  error_message = ''
   begin
     percent = MIN_PERCENT_PROFIT
-    sleep(1.0)
+    sleep(5.0)
     puts
     puts
     puts
@@ -47,14 +83,21 @@ def trade(buy_exchange, sell_exchange)
     puts "#=================="
     puts "[Timestamp - #{start_time}]"
 
-    # If CampBx is the sell exchange, try to match the quantity of
-    # top of book to increase the chances of a match in the event of
-    # AON order types.
-    if sell_exchange == :campbx
-
+    set_circle_account_hash = if circle_buy_client
+      {buyer_circle_account: circle_buy_client}
+    elsif circle_sell_client
+      {seller_circle_account: circle_sell_client}
+    else
+      {}
     end
 
-    options = { buyer: buy_exchange, seller: sell_exchange, volume: @volume, cutoff: percent, verbose: true}
+    options = {
+      buyer: buy_exchange,
+      seller: sell_exchange,
+      volume: @volume,
+      cutoff: percent,
+      verbose: true
+    }.merge(set_circle_account_hash)
 
     ####### This turns on live trading #####
     if @live == true
@@ -66,27 +109,6 @@ def trade(buy_exchange, sell_exchange)
     ########################################
 
     rbtc_arbitrage = RbtcArbitrage::Trader.new(options)
-
-
-    # If CampBx is the sell exchange, try to match the quantity of
-    # top of book to increase the chances of a match in the event of
-    # AON order types.
-    if sell_exchange == :campbx
-      buyer_btc_balance, buyer_usd_balance = rbtc_arbitrage.get_buyer_balance
-      seller_btc_balance, seller_usd_balance = rbtc_arbitrage.get_seller_balance
-
-      top_of_book_quantity = rbtc_arbitrage.sell_client.top_of_book_quantity(:sell)
-      if top_of_book_quantity &&
-        top_of_book_quantity <= buyer_btc_balance &&
-        top_of_book_quantity <= seller_btc_balance &&
-        top_of_book_quantity <= MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE
-
-        new_volume = top_of_book_quantity
-        options.merge!({volume: new_volume})
-
-        rbtc_arbitrage = RbtcArbitrage::Trader.new(options)
-      end
-    end
 
     command = "rbtc --seller #{options[:seller]} --buyer #{options[:buyer]} --volume #{options[:volume]} --cutoff #{options[:cutoff]}"
 
@@ -108,10 +130,6 @@ def trade(buy_exchange, sell_exchange)
     profit_dollars, profit_percent = rbtc_arbitrage.get_profit
     puts "Profit: $#{profit_dollars} --> #{profit_percent}%"
 
-    if profit_percent > percent
-    puts "PROFITABLE TRADE!"
-    @accumulated_profit_in_cents += (profit_dollars * 100)
-    end
     puts "ACCUMULATED PROFIT: #{@accumulated_profit_in_cents / 100.0}"
 
     end_time = Time.now
@@ -127,13 +145,19 @@ def trade(buy_exchange, sell_exchange)
     puts "\t---Done excecuting command---"
     puts "#=================="
 
-  rescue Exception => e
+    if profit_percent > percent
+      puts "PROFITABLE TRADE!"
+      @accumulated_profit_in_cents += (profit_dollars * 100)
+    end
+
+  rescue SecurityError => e
     puts " *** Exception has occured *** "
     puts e.message
     puts "************"
+    error_message = e.message
   end
 
-  [profit_dollars, profit_percent, rbtc_arbitrage]
+  [profit_dollars, profit_percent, rbtc_arbitrage, error_message]
 end
 
 def flip_exchanges(exchange_a, exchange_b)
@@ -145,19 +169,47 @@ def no_open_orders?(exchange_a, exchange_b)
     exchange_b.open_orders.size == 0
 end
 
+def exception_due_to_insufficient_funds?(message)
+  message == "Not enough funds. Exiting."
+end
+
 set_trading_parameters
 exchange_1 = @buyer
 exchange_2 = @seller
+active_circle_account = nil
 
 while enabled == true
-  set_trading_parameters
-  if profit > 0
-    profit, profit_percent = trade(exchange_1, exchange_2)
-  else
-    exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
+  # Read in circle_accounts.json to get first ACTIVE account
+  puts "Finding Active Circle Account ..."
+  active_circle_account = CircleAccount::CircleAccount.find_active_account(active_circle_account)
+  puts "Using Circle Account [#{active_circle_account.email}]"
+
+  # Transfer outstanding BTC balances from non-active accounts to the current Active Account
+  puts "Consolidating BTC balances to active account if necessary ..."
+  CircleAccount::CircleAccount.consolidate_btc_balances_to_account(active_circle_account)
+
+  if active_circle_account.blank?
+    puts "No active Circle Account set! Please fix this error before continuing!"
+    sleep(15)
+    next
   end
 
-  profit, profit_percent, rbtc_arbitrage = trade(exchange_1, exchange_2)
+  set_trading_parameters
+  if profit > 0
+    # Do Nothing
+  else
+    if exchange_1 == :circle
+      exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
+    else
+      exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
+    end
+  end
+
+  if exchange_1 == :circle
+    profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2, active_circle_account, nil)
+  else
+    profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2, nil, active_circle_account)
+  end
 
   if @step && profit_percent >= MIN_PERCENT_PROFIT
     binding.pry
@@ -169,6 +221,19 @@ while enabled == true
     open_order_sleep = 10.0
     puts "*** Open orders detected on exchanges! Re-checking in #{open_order_sleep} seconds. ***"
     sleep(open_order_sleep)
+  end
+
+  if profit_percent >= MIN_PERCENT_PROFIT && !exception_due_to_insufficient_funds?(error_message)
+    # Sleep after profitable trade to avoid getting flagged for
+    # frequent trades on Circle
+    sleep_time = 30
+    puts
+    puts "******"
+    puts "Waiting #{(sleep_time.to_f / 60)} mins (#{sleep_time} seconds) after profitable trade to resume trading ..."
+    puts "******"
+    puts
+
+    sleep(sleep_time)
   end
 
   #enabled = false

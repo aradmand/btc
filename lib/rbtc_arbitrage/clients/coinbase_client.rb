@@ -3,6 +3,8 @@ module RbtcArbitrage
     class CoinbaseClient
       include RbtcArbitrage::Client
 
+      require 'active_support/core_ext/object/try'
+
       # return a symbol as the name
       # of this exchange
       def exchange
@@ -47,8 +49,10 @@ module RbtcArbitrage
 
       # Transfers BTC to the address of a different
       # exchange.
-      def transfer client
-        interface.send_money client.address, @options[:volume]
+      def transfer(client, override_values = nil)
+        volume = override_values.try(:[], :volume) || @options[:volume]
+        volume = volume.round(8)
+        interface.send_money client.address, volume
       end
 
       def account(account_name)
