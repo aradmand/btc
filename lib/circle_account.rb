@@ -74,17 +74,23 @@ module CircleAccount
 
     def configure_state!
       withdraw_limit = circle_client.withdraw_limit_trailing_seven_days(false)
+      btc_balance, usd_balance  = circle_client.balance(false)
+
       self.withdrawn_amount_last_seven_days = withdraw_limit
       if withdrawn_amount_last_seven_days > 400000
         self.state = STATE_MAXED_OUT
-      else
+      elsif btc_balance.to_f > 0.4 && withdrawn_amount_last_seven_days < 400000
         self.state = STATE_ACTIVE
+      else
+        self.state = STATE_INACTIVE
       end
     end
 
     def still_active?
       withdraw_limit = circle_client.withdraw_limit_trailing_seven_days(false)
-      withdraw_limit < 400000
+      btc_balance, usd_balance  = circle_client.balance(false)
+
+      btc_balance.to_f > 0.4 && withdraw_limit < 400000
     end
 
     def btc_address
