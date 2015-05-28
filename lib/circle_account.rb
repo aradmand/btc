@@ -28,44 +28,26 @@ module CircleAccount
       # Determine the state of each account
       circle_accounts_array = set_circle_accounts_array(circle_account_hash)
 
-      # Iterate through each account and transfer BTC funds if necessary
+      # Iterate through each account and transfer BTC funds
+      # to base account if the current account is maxed out
+      base_account = circle_accounts_array.select {|account| account.email == 'arian.radmand@gmail.com'}.first
+
       circle_accounts_array.each do |circle_account|
-        next if circle_account.email == active_circle_account.email
-        circle_account.transfer_btc_to_active_account(active_circle_account)
+        next if circle_account.email == base_account.email
+        circle_account.transfer_btc_to_active_account(base_account)
       end
     end
 
     def self.find_active_account(previous_active_account = nil)
-      begin
-        if previous_active_account && previous_active_account.still_active?
-          previous_active_account.configure_state!
-          return previous_active_account
-        end
-      rescue => e
-        puts 'Exception while determining if previous CircleAccount is still active'
-        puts e.message
-      end
-
       circle_account_hash = read_accounts_configuration_file
       return nil unless circle_account_hash
 
       # Determine the state of each account
       circle_accounts_array = set_circle_accounts_array(circle_account_hash)
 
-      # Set only one account to active
-      circle_accounts_array.each do |account|
-        if account.state == STATE_ACTIVE
-          circle_accounts_array.each do |inactive_account|
-            unless account == inactive_account || inactive_account.state == STATE_MAXED_OUT
-              inactive_account.state = STATE_INACTIVE
-            end
-          end
-        end
-      end
-
-      active_circle_account = circle_accounts_array.select do |account|
-        account.state == STATE_ACTIVE
-      end.try(:first)
+      # Take a random active account and use it to trade
+      active_account_array = circle_accounts_array.reject { |account| account.state != STATE_ACTIVE }
+      active_circle_account = active_account_array.sample(1).try(:first)
     end
 
     def circle_client(config = {})
@@ -100,7 +82,7 @@ module CircleAccount
     def transfer_btc_to_active_account(active_account)
       return unless active_account.present?
 
-      if active_account.state == STATE_ACTIVE
+      if self.state == STATE_MAXED_OUT
         btc_balance, usd_balance = circle_client.balance
         transfer_amount = (btc_balance - 0.0005).round(5)
         if btc_balance.round(5) > 0.0005 && transfer_amount > 0
