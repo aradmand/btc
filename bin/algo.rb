@@ -226,7 +226,7 @@ while enabled == true
   if profit_percent >= MIN_PERCENT_PROFIT && !exception_due_to_insufficient_funds?(error_message)
     # Sleep after profitable trade to avoid getting flagged for
     # frequent trades on Circle
-    sleep_time = 30
+    sleep_time = 5
     puts
     puts "******"
     puts "Waiting #{(sleep_time.to_f / 60)} mins (#{sleep_time} seconds) after profitable trade to resume trading ..."
