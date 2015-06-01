@@ -75,10 +75,9 @@ module RbtcArbitrage
         price_entries = bids_asks_hash[:bids]
         price_bid = price_entries.first.first.try(:to_f)
 
-        time = Time.now.strftime("%B %d, %Y")
-        time_of_day = Time.now.to_formatted_s(:time)
-        CSV.open( "~/tmp/btc_logs/coinbase_exchange_logger.csv", 'a+' ) do |writer|
-            writer << [time, time_of_day, price_bid, price_ask]
+        time = Time.now.strftime("%Y-%m-%d %H:%M:%S")
+        CSV.open( "/Users/jupiter/tmp/btc_logs/coinbase_exchange_logger.csv", 'a+' ) do |writer|
+            writer << [time, price_bid, price_ask]
         end
 
         # Return proper value

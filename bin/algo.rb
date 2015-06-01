@@ -177,11 +177,11 @@ set_trading_parameters
 exchange_1 = @buyer
 exchange_2 = @seller
 active_circle_account = nil
-CSV.open( "~/tmp/btc_logs/coinbase_exchange_logger.csv", 'a+' ) do |writer|
-            writer << ["time", "time_of_day", "price_bid", "price_ask"]
+CSV.open( "/Users/jupiter/tmp/btc_logs/coinbase_exchange_logger.csv", 'a+' ) do |writer|
+            writer << ["time", "price_bid", "price_ask"]
 end
-CSV.open( "~/tmp/btc_logs/circle_logger.csv", 'a+' ) do |writer|
-            writer << ["time", "time_of_day", "exchange_rate"]
+CSV.open( "/Users/jupiter/tmp/btc_logs/circle_logger.csv", 'a+' ) do |writer|
+            writer << ["time", "exchange_rate"]
 end
 while enabled == true
   # Read in circle_accounts.json to get first ACTIVE account

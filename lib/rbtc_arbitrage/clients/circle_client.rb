@@ -76,9 +76,8 @@ module RbtcArbitrage
         exchange_rate = result[:exchange_rate]
         price = exchange_rate.to_f
         csvrate = exchange_rate.to_f
-        time = Time.now.strftime("%B %d, %Y")
-        time_of_day = Time.now.to_formatted_s(:time)
-        CSV.open( "~/tmp/btc_logs/circle_logger.csv", 'a+' ) do |writer|
+        time = Time.now.strftime("%Y-%m-%d %H:%M:%S")
+        CSV.open( "/Users/jupiter/tmp/btc_logs/circle_logger.csv", 'a+' ) do |writer|
             writer << [time, time_of_day, csvrate]
         end
         price
