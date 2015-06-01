@@ -81,9 +81,6 @@ module RbtcArbitrage
         CSV.open( "~/tmp/btc_logs/circle_logger.csv", 'a+' ) do |writer|
             writer << [time, time_of_day, csvrate]
         end
-        # CSV.open( "/Users/joshthedudeoflife/btc-gamma/consolidated.csv", 'a+' ) do |writer|
-        #     writer << [time, time_of_day, csvrate]
-        # end
         price
       end
 
