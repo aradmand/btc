@@ -38,9 +38,6 @@ puts coinbase_sell_price
 coinbase_exchange_buy_price = coinbase_exchange_client.price(:buy)
 coinbase_exchange_sell_price = coinbase_exchange_client.price(:sell)
 @time = Time.now
-# CSV.open( "/Users/joshthedudeoflife/btc-gamma/campbx_logger.csv", 'a+' ) do |writer|
-# 	writer << [@time, coinbase_exchange_buy_pricece]
-# end
 
 puts 'coinbase_exchange_buy_price'
 puts coinbase_exchange_buy_price

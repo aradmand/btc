@@ -55,7 +55,7 @@ require 'circle_account'
 enabled = true
 profit = 0
 
-MIN_PERCENT_PROFIT = 0.61
+MIN_PERCENT_PROFIT = 20
 MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 
 
@@ -177,21 +177,17 @@ set_trading_parameters
 exchange_1 = @buyer
 exchange_2 = @seller
 active_circle_account = nil
-CSV.open( "/Users/joshthedudeoflife/btc-gamma/coinbase_exchange_logger.csv", 'a+' ) do |writer|
+CSV.open( "~/tmp/btc_logs/coinbase_exchange_logger.csv", 'a+' ) do |writer|
             writer << ["time", "time_of_day", "price_bid", "price_ask"]
 end
-CSV.open( "/Users/joshthedudeoflife/btc-gamma/circle.csv", 'a+' ) do |writer|
-            writer << ["time", "time_of_day", "csvrate"]
+CSV.open( "~/tmp/btc_logs/circle_logger.csv", 'a+' ) do |writer|
+            writer << ["time", "time_of_day", "exchange_rate"]
 end
 while enabled == true
   # Read in circle_accounts.json to get first ACTIVE account
   puts "Finding Active Circle Account ..."
   active_circle_account = CircleAccount::CircleAccount.find_active_account(active_circle_account)
   puts "Using Circle Account [#{active_circle_account.email}]"
-
-  # Transfer outstanding BTC balances from non-active accounts to the current Active Account
-  puts "Consolidating BTC balances to active account if necessary ..."
-  CircleAccount::CircleAccount.consolidate_btc_balances_to_account(active_circle_account)
 
   if active_circle_account.blank?
     puts "No active Circle Account set! Please fix this error before continuing!"
@@ -240,6 +236,8 @@ while enabled == true
 
     sleep(sleep_time)
   end
+
+  sleep(10)
 
   #enabled = false
 end

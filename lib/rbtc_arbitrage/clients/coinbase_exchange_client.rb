@@ -75,15 +75,12 @@ module RbtcArbitrage
         price_entries = bids_asks_hash[:bids]
         price_bid = price_entries.first.first.try(:to_f)
 
-      #binding.pry
         time = Time.now.strftime("%B %d, %Y")
         time_of_day = Time.now.to_formatted_s(:time)
         CSV.open( "/Users/joshthedudeoflife/btc-gamma/coinbase_exchange_logger.csv", 'a+' ) do |writer|
             writer << [time, time_of_day, price_bid, price_ask]
         end
-        # CSV.open( "/Users/joshthedudeoflife/btc-gamma/consolidated.csv", 'a+' ) do |writer|
-        #     writer << ["Circle",time, time_of_day, price_bid, price_ask]
-        # end
+
         # Return proper value
         if action == :buy
           price_ask

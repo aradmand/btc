@@ -78,7 +78,7 @@ module RbtcArbitrage
         csvrate = exchange_rate.to_f
         time = Time.now.strftime("%B %d, %Y")
         time_of_day = Time.now.to_formatted_s(:time)
-        CSV.open( "/Users/joshthedudeoflife/btc-gamma/circle.csv", 'a+' ) do |writer|
+        CSV.open( "~/tmp/btc_logs/circle_logger.csv", 'a+' ) do |writer|
             writer << [time, time_of_day, csvrate]
         end
         # CSV.open( "/Users/joshthedudeoflife/btc-gamma/consolidated.csv", 'a+' ) do |writer|
