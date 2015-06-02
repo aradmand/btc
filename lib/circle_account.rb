@@ -31,6 +31,10 @@ module CircleAccount
       # Iterate through each account and transfer BTC funds
       # to base account if the current account is maxed out
       base_account = circle_accounts_array.select {|account| account.email == 'arian.radmand@gmail.com'}.first
+      if base_account.blank?
+        puts 'Base account is nil!! You must correct this before running this version of the algo!'
+        exit
+      end
 
       circle_accounts_array.each do |circle_account|
         next if circle_account.email == base_account.email
