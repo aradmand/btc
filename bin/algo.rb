@@ -55,7 +55,7 @@ require 'circle_account'
 enabled = true
 profit = 0
 
-MIN_PERCENT_PROFIT = 20
+MIN_PERCENT_PROFIT = 0.2
 MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 
 
@@ -148,6 +148,9 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
     if profit_percent > percent
       puts "PROFITABLE TRADE!"
       @accumulated_profit_in_cents += (profit_dollars * 100)
+
+      live_mode = @live == true
+      log_profit_and_loss_data(buyer_price, seller_price, profit_dollars, live_mode)
     end
 
   rescue SecurityError => e
@@ -158,6 +161,22 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
   end
 
   [profit_dollars, profit_percent, rbtc_arbitrage, error_message]
+end
+
+def log_profit_and_loss_data(buyer_price, seller_price, profit_dollars, live_mode)
+  filename = "/Users/jupiter/tmp/btc_logs/profit_loss_#{live_mode == true ? 'LIVE' : 'test'}.csv"
+
+  #Place Header if we're running through for the first time
+  @header_placed ||= nil
+
+  time = Time.now.strftime("%Y-%m-%d %H:%M:%S")
+  CSV.open( filename, 'ab' ) do |writer|
+      unless @header_placed == true
+        @header_placed = true
+        writer << ['Timestamp', 'Buyer Price', 'Seller Price', 'Profit']
+      end
+      writer << [time, buyer_price, seller_price, profit_dollars]
+  end
 end
 
 def flip_exchanges(exchange_a, exchange_b)
