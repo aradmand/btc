@@ -55,7 +55,7 @@ require 'circle_account'
 enabled = true
 profit = 0
 
-MIN_PERCENT_PROFIT = 0.3
+MIN_PERCENT_PROFIT = 0.41
 MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 
 
@@ -202,7 +202,7 @@ while enabled == true
   # Read in circle_accounts.json to get first ACTIVE account
   puts "Finding Active Circle Account ..."
   active_circle_account = CircleAccount::CircleAccount.find_active_account(active_circle_account)
-  puts "Using Circle Account [#{active_circle_account.email}]"
+  puts "Using Circle Account [#{active_circle_account.try(:email)}]"
 
   # Transfer outstanding BTC balances from non-active accounts to the current Active Account
   puts "Consolidating BTC balances to active account if necessary ..."
