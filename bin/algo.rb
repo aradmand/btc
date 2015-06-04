@@ -164,8 +164,8 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
 end
 
 def log_profit_and_loss_data(buyer_price, seller_price, profit_dollars, live_mode)
-  time = Time.now.strftime("%Y_%m_%d")
-  filename = "/Users/jupiter/tmp/btc_logs/profit_loss_#{live_mode == true ? 'LIVE' : 'test'}_#{time}.csv"
+  @log_time ||= Time.now.strftime("%Y_%m_%d")
+  filename = "/Users/jupiter/tmp/btc_logs/profit_loss_#{live_mode == true ? 'LIVE' : 'test'}_#{@log_time}.csv"
 
   #Place Header if we're running through for the first time
   @header_placed ||= nil
