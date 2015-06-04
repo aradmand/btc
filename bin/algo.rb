@@ -55,7 +55,7 @@ require 'circle_account'
 enabled = true
 profit = 0
 
-MIN_PERCENT_PROFIT = 0.41
+MIN_PERCENT_PROFIT = 0.56
 MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 
 
