@@ -201,11 +201,6 @@ module RbtcArbitrage
           "product_id" => product_id
         }
 
-        ###  Debugging
-        puts "*** Request Body ***"
-        puts request_body
-        ###
-
         auth_headers = signature('/orders', request_body, nil, 'POST')
 
         api_url = "#{exchange_api_url}/orders"
