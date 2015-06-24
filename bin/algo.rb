@@ -1,4 +1,4 @@
-# Epsilon Algo
+# Zeta Algo
 #
 # This Algorithm is optimized for arbitrage trading between the circle and
 # coinbase_exchange exchanges.
@@ -60,8 +60,8 @@ MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 
 
 def set_trading_parameters
-  @buyer = ENV['BTC_BUYER'].try(:to_sym) || :circle
-  @seller = ENV['BTC_SELLER'].try(:to_sym) || :coinbase_exchange
+  @buyer = ENV['BTC_BUYER'].try(:to_sym) || :coinbase_exchange
+  @seller = ENV['BTC_SELLER'].try(:to_sym) || :circle
   @volume = 0.4
 
   args_hash = Hash[*ARGV]
@@ -215,15 +215,15 @@ while enabled == true
   end
 
   set_trading_parameters
-  if profit > 0
-    # Do Nothing
-  else
-    if exchange_1 == :circle
-      exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
-    else
-      exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
-    end
-  end
+  # if profit > 0
+  #   # Do Nothing
+  # else
+  #   if exchange_1 == :circle
+  #     exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
+  #   else
+  #     exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
+  #   end
+  # end
 
   if exchange_1 == :circle
     profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2, active_circle_account, nil)
@@ -246,7 +246,7 @@ while enabled == true
   if profit_percent >= MIN_PERCENT_PROFIT && !exception_due_to_insufficient_funds?(error_message)
     # Sleep after profitable trade to avoid getting flagged for
     # frequent trades on Circle
-    sleep_time = 5
+    sleep_time = 10
     puts
     puts "******"
     puts "Waiting #{(sleep_time.to_f / 60)} mins (#{sleep_time} seconds) after profitable trade to resume trading ..."

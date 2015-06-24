@@ -51,7 +51,17 @@ module CircleAccount
 
       # Take a random active account and use it to trade
       active_account_array = circle_accounts_array.reject { |account| account.state != STATE_ACTIVE }
-      active_circle_account = active_account_array.sample(1).try(:first)
+
+      active_account = if previous_active_account && active_account_array.count > 1
+        active_circle_account = active_account_array.sample(1).try(:first)
+        while active_circle_account.email == previous_active_account.email
+          active_circle_account = active_account_array.sample(1).try(:first)
+        end
+        active_circle_account
+      else
+        active_circle_account = active_account_array.sample(1).try(:first)
+      end
+      active_account
     end
 
     def circle_client(config = {})
@@ -142,8 +152,12 @@ end
 #  Adding a new Circle Account
 #
 #  1. Add email address and login credentials to google doc
-#  2. Add entry in circle_accounts.json
-#  3. Log in to new Circle Account and turn 2 factor auth OFF for withdraws and transfers
+#  2. Log in to new Circle Account and turn 2 factor auth OFF for withdraws and transfers
+#  3. Link the bank account for the new Circle account
+#  4. Add entry in circle_accounts.json
+# => The api_customer_id you can get from the Network Console in Chrome ... its the name of the repetitive request on the left pane
+# => The api_bank_account_id you can get from the 'address' command
+#
 #################################
 
 

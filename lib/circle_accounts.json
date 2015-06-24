@@ -3,7 +3,7 @@
     {
       "api_bank_account_id" : 186074,
       "api_customer_id" : 168900,
-      "api_customer_session_token" : "97130d90637e3574e75657fc9f07016bf60bf186",
+      "api_customer_session_token" : "e56c7bd46aaf143bd86e1e909ae71cfb066e4a86",
       "state" : "inactive",
       "withdrawn_amount_last_seven_days" : 0
     },
@@ -12,7 +12,16 @@
     {
       "api_bank_account_id" : 6937258,
       "api_customer_id" : 6871309,
-      "api_customer_session_token" : "f1b9b065b6b2e7e0abb195666047c5fbb0305065",
+      "api_customer_session_token" : "aa26dc57951a88673299bbaadea772f809eb4747",
+      "state" : "inactive",
+      "withdrawn_amount_last_seven_days" : 0
+    },
+
+  "rjamarge@gmail.com" :
+    {
+      "api_bank_account_id" : 8193838,
+      "api_customer_id" : 8116923,
+      "api_customer_session_token" : "7ef3dbc17be0c1c60cfd96293e6f25a6f0a305ac",
       "state" : "inactive",
       "withdrawn_amount_last_seven_days" : 0
     }
