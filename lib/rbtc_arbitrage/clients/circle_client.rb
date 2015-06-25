@@ -511,6 +511,15 @@ module RbtcArbitrage
           response = curl.perform
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
           parsed_json = JSON.parse(json_data)
+        rescue Curl::Err::ConnectionFailedError => e
+          puts "ConnectionFailed Exception occured in 'api_customers_command'"
+          # If possible, this would be a good time to retry
+          # retry
+          binding.pry if break_for_errors
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
         rescue => e
           puts "Exception occured in 'api_customers_command'"
           binding.pry if break_for_errors
