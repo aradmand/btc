@@ -9,6 +9,11 @@ module RbtcArbitrage
       require 'json'
       require 'active_support/core_ext/object/try'
 
+      CONNECTION_STATE_INITIAL = 'initial'
+      CONNECTION_STATE_CURL_PERFORMED = 'curl_performed'
+      CONNECTION_STATE_CURL_DECOMPRESSED = 'curl_decompressed'
+      CONNECTION_STATE_CURL_PARSED = 'curl_parsed'
+
       def initialize(options = {})
         if options[:circle_account]
           circle_account = options[:circle_account]
@@ -139,11 +144,26 @@ module RbtcArbitrage
         response = nil
         json_data = nil
         parsed_json = nil
+        connection_state = CONNECTION_STATE_INITIAL
 
         begin
           response = curl.perform
+          connection_state = CONNECTION_STATE_CURL_PERFORMED
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
+          connection_state = CONNECTION_STATE_CURL_PARSED
+        rescue Curl::Err::ConnectionFailedError => e
+          puts "ConnectionFailed Exception occured in 'api_address_command'"
+          # If possible, this would be a good time to retry
+          # retry
+          puts "Connection State:"
+          puts connection_state
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
         rescue => e
           puts 'Exception occured in api_address_command'
           binding.pry
@@ -177,11 +197,26 @@ module RbtcArbitrage
         response = nil
         json_data = nil
         parsed_json = nil
+        connection_state = CONNECTION_STATE_INITIAL
 
         begin
           response = curl.perform
+          connection_state = CONNECTION_STATE_CURL_PERFORMED
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
+          connection_state = CONNECTION_STATE_CURL_PARSED
+        rescue Curl::Err::ConnectionFailedError => e
+          puts "ConnectionFailed Exception occured in 'fiat_account_command'"
+          # If possible, this would be a good time to retry
+          # retry
+          puts "Connection State:"
+          puts connection_state
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
         rescue => e
           puts 'Exception occured in fiat_account_command'
           binding.pry
@@ -265,30 +300,47 @@ module RbtcArbitrage
         withdraw_json_data = withdraw_json_data.to_json
         content_length = withdraw_json_data.length
 
-        curl = Curl::Easy.http_post(api_url, withdraw_json_data) do |http|
-          http.headers['host'] = 'www.circle.com'
-          http.headers['method'] = 'POST'
-          http.headers['path'] = path_header
-          http.headers['scheme'] = 'https'
-          http.headers['version'] = 'HTTP/1.1'
-          http.headers['accept'] = 'application/json, text/plain, */*'
-          http.headers['accept-encoding'] = 'gzip,deflate'
-          http.headers['accept-language'] = 'en-US,en;q=0.8'
-          http.headers['content-length'] = content_length
-          http.headers['content-type'] = 'application/json;charset=UTF-8'
-          http.headers['cookie'] = circle_cookie
-          http.headers['origin'] = 'https://www.circle.com'
-          http.headers['referer'] = "https://www.circle.com/withdraw/confirm"
-          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
-          http.headers['x-customer-id'] = customer_id
-          http.headers['x-customer-session-token'] = circle_customer_session_token
-        end
-
         json_data = nil
         parsed_json = nil
+        curl = nil
+        connection_state = CONNECTION_STATE_INITIAL
+
         begin
+          curl = Curl::Easy.http_post(api_url, withdraw_json_data) do |http|
+            http.headers['host'] = 'www.circle.com'
+            http.headers['method'] = 'POST'
+            http.headers['path'] = path_header
+            http.headers['scheme'] = 'https'
+            http.headers['version'] = 'HTTP/1.1'
+            http.headers['accept'] = 'application/json, text/plain, */*'
+            http.headers['accept-encoding'] = 'gzip,deflate'
+            http.headers['accept-language'] = 'en-US,en;q=0.8'
+            http.headers['content-length'] = content_length
+            http.headers['content-type'] = 'application/json;charset=UTF-8'
+            http.headers['cookie'] = circle_cookie
+            http.headers['origin'] = 'https://www.circle.com'
+            http.headers['referer'] = "https://www.circle.com/withdraw/confirm"
+            http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+            http.headers['x-customer-id'] = customer_id
+            http.headers['x-customer-session-token'] = circle_customer_session_token
+          end
+
+          connection_state = CONNECTION_STATE_CURL_PERFORMED
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
+          connection_state = CONNECTION_STATE_CURL_PARSED
+        rescue Curl::Err::ConnectionFailedError => e
+          puts "ConnectionFailed Exception occured in 'api_withdraws_command'"
+          # If possible, this would be a good time to retry
+          # retry
+          puts "Connection State:"
+          puts connection_state
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
         rescue => e
           puts "Exception occured in 'api_withdraws_command'"
           binding.pry
@@ -297,7 +349,6 @@ module RbtcArbitrage
           puts "Exception:"
           puts e.message
         end
-
 
         withdraw_response_status = parsed_json
         response_code = withdraw_response_status['response']['status']['code']
@@ -323,30 +374,47 @@ module RbtcArbitrage
         deposit_json_data = deposit_json_data.to_json
         content_length = deposit_json_data.length
 
-        curl = Curl::Easy.http_post(api_url, deposit_json_data) do |http|
-          http.headers['host'] = 'www.circle.com'
-          http.headers['method'] = 'POST'
-          http.headers['path'] = path_header
-          http.headers['scheme'] = 'https'
-          http.headers['version'] = 'HTTP/1.1'
-          http.headers['accept'] = 'application/json, text/plain, */*'
-          http.headers['accept-encoding'] = 'gzip,deflate'
-          http.headers['accept-language'] = 'en-US,en;q=0.8'
-          http.headers['content-length'] = content_length
-          http.headers['content-type'] = 'application/json;charset=UTF-8'
-          http.headers['cookie'] = circle_cookie
-          http.headers['origin'] = 'https://www.circle.com'
-          http.headers['referer'] = "https://www.circle.com/deposit"
-          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
-          http.headers['x-customer-id'] = customer_id
-          http.headers['x-customer-session-token'] = circle_customer_session_token
-        end
-
         json_data = nil
         parsed_json = nil
+        curl = nil
+        connection_state = CONNECTION_STATE_INITIAL
+
         begin
+          curl = Curl::Easy.http_post(api_url, deposit_json_data) do |http|
+            http.headers['host'] = 'www.circle.com'
+            http.headers['method'] = 'POST'
+            http.headers['path'] = path_header
+            http.headers['scheme'] = 'https'
+            http.headers['version'] = 'HTTP/1.1'
+            http.headers['accept'] = 'application/json, text/plain, */*'
+            http.headers['accept-encoding'] = 'gzip,deflate'
+            http.headers['accept-language'] = 'en-US,en;q=0.8'
+            http.headers['content-length'] = content_length
+            http.headers['content-type'] = 'application/json;charset=UTF-8'
+            http.headers['cookie'] = circle_cookie
+            http.headers['origin'] = 'https://www.circle.com'
+            http.headers['referer'] = "https://www.circle.com/deposit"
+            http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+            http.headers['x-customer-id'] = customer_id
+            http.headers['x-customer-session-token'] = circle_customer_session_token
+          end
+
+          connection_state = CONNECTION_STATE_CURL_PERFORMED
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
+          connection_state = CONNECTION_STATE_CURL_PARSED
+        rescue Curl::Err::ConnectionFailedError => e
+          puts "ConnectionFailed Exception occured in 'api_deposits_command'"
+          # If possible, this would be a good time to retry
+          # retry
+          puts "Connection State:"
+          puts connection_state
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
         rescue => e
           puts 'Exception occured in api_deposits_command:'
           binding.pry
@@ -433,33 +501,49 @@ module RbtcArbitrage
 
         path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/transactions"
 
-        curl = Curl::Easy.http_post(api_url, btc_transfer_json_data) do |http|
-          http.headers['host'] = 'www.circle.com'
-          http.headers['method'] = 'POST'
-          http.headers['path'] = path_header
-          http.headers['scheme'] = 'https'
-          http.headers['version'] = 'HTTP/1.1'
-          http.headers['accept'] = 'application/json, text/plain, */*'
-          http.headers['accept-encoding'] = 'gzip,deflate'
-          http.headers['accept-language'] = 'en-US,en;q=0.8'
-          http.headers['content-length'] = content_length
-          http.headers['content-type'] = 'application/json;charset=UTF-8'
-          http.headers['cookie'] = circle_cookie
-          http.headers['origin'] = 'https://www.circle.com'
-          http.headers['referer'] = "https://www.circle.com/send/confirm"
-          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
-          http.headers['x-app-id'] = 'angularjs'
-          http.headers['x-app-version'] = "0.0.1"
-          http.headers['x-customer-id'] = customer_id
-          http.headers['x-customer-session-token'] = customer_session_token
-        end
-
         json_data = nil
         parsed_json = nil
+        curl = nil
+        connection_state = CONNECTION_STATE_INITIAL
 
         begin
+          curl = Curl::Easy.http_post(api_url, btc_transfer_json_data) do |http|
+            http.headers['host'] = 'www.circle.com'
+            http.headers['method'] = 'POST'
+            http.headers['path'] = path_header
+            http.headers['scheme'] = 'https'
+            http.headers['version'] = 'HTTP/1.1'
+            http.headers['accept'] = 'application/json, text/plain, */*'
+            http.headers['accept-encoding'] = 'gzip,deflate'
+            http.headers['accept-language'] = 'en-US,en;q=0.8'
+            http.headers['content-length'] = content_length
+            http.headers['content-type'] = 'application/json;charset=UTF-8'
+            http.headers['cookie'] = circle_cookie
+            http.headers['origin'] = 'https://www.circle.com'
+            http.headers['referer'] = "https://www.circle.com/send/confirm"
+            http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+            http.headers['x-app-id'] = 'angularjs'
+            http.headers['x-app-version'] = "0.0.1"
+            http.headers['x-customer-id'] = customer_id
+            http.headers['x-customer-session-token'] = customer_session_token
+          end
+
+          connection_state = CONNECTION_STATE_CURL_PERFORMED
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
+          connection_state = CONNECTION_STATE_CURL_PARSED
+        rescue Curl::Err::ConnectionFailedError => e
+          puts "ConnectionFailed Exception occured in 'api_transactions_command'"
+          # If possible, this would be a good time to retry
+          # retry
+          puts "Connection State:"
+          puts connection_state
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
         rescue => e
           puts 'Exception occured in api_transactions_command:'
           binding.pry
@@ -506,16 +590,22 @@ module RbtcArbitrage
         json_data = nil
         parsed_json = nil
         response = nil
+        connection_state = CONNECTION_STATE_INITIAL
 
         begin
           response = curl.perform
+          connection_state = CONNECTION_STATE_CURL_PERFORMED
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
+          connection_state = CONNECTION_STATE_CURL_PARSED
         rescue Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'api_customers_command'"
           # If possible, this would be a good time to retry
           # retry
-          binding.pry if break_for_errors
+          puts "Connection State:"
+          puts connection_state
+          binding.pry
           puts "curl.body_str:"
           puts curl.body_str
           puts "Exception:"
