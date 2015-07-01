@@ -55,7 +55,7 @@ require 'circle_account'
 enabled = true
 profit = 0
 
-MIN_PERCENT_PROFIT = 0.56
+MIN_PERCENT_PROFIT = 0.55
 MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 
 
@@ -130,6 +130,9 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
     profit_dollars, profit_percent = rbtc_arbitrage.get_profit
     puts "Profit: $#{profit_dollars} --> #{profit_percent}%"
 
+    buyer_depth_to_cover = rbtc_arbitrage.buyer_depth_to_cover?(options[:volume])
+    puts "Buyer Depth to Cover?: #{buyer_depth_to_cover}"
+
     puts "ACCUMULATED PROFIT: #{@accumulated_profit_in_cents / 100.0}"
 
     end_time = Time.now
@@ -137,20 +140,22 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
     puts "[Elapsed time - #{end_time - start_time}]"
     puts
 
-    puts "\t---Executing command---"
-    start_time = Time.now
-    rbtc_arbitrage.trade
-    end_time = Time.now
-    puts "[Elapsed time - #{end_time - start_time}]"
-    puts "\t---Done excecuting command---"
-    puts "#=================="
+    unless @live && buyer_depth_to_cover == false
+      puts "\t---Executing command---"
+      start_time = Time.now
+      rbtc_arbitrage.trade
+      end_time = Time.now
+      puts "[Elapsed time - #{end_time - start_time}]"
+      puts "\t---Done excecuting command---"
+      puts "#=================="
 
-    if profit_percent > percent
-      puts "PROFITABLE TRADE!"
-      @accumulated_profit_in_cents += (profit_dollars * 100)
+      if profit_percent > percent
+        puts "PROFITABLE TRADE!"
+        @accumulated_profit_in_cents += (profit_dollars * 100)
 
-      live_mode = @live == true
-      log_profit_and_loss_data(buyer_price, seller_price, profit_dollars, live_mode)
+        live_mode = @live == true
+        log_profit_and_loss_data(buyer_price, seller_price, profit_dollars, live_mode)
+      end
     end
 
   rescue SecurityError => e
@@ -205,8 +210,8 @@ while enabled == true
   puts "Using Circle Account [#{active_circle_account.try(:email)}]"
 
   # Transfer outstanding BTC balances from non-active accounts to the current Active Account
-  puts "Consolidating BTC balances to active account if necessary ..."
-  CircleAccount::CircleAccount.consolidate_btc_balances_to_account(active_circle_account)
+  # puts "Consolidating BTC balances to active account if necessary ..."
+  # CircleAccount::CircleAccount.consolidate_btc_balances_to_account(active_circle_account)
 
   if active_circle_account.blank?
     puts "No active Circle Account set! Please fix this error before continuing!"

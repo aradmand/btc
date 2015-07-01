@@ -99,6 +99,14 @@ module RbtcArbitrage
       @sell_client.price(:sell)
     end
 
+    def buyer_depth_to_cover?(volume)
+      bid_asks = @buy_client.order_book_with_volume(:buy)
+      depth_volume = bid_asks[0..4].map do |price_vol_qty_array|
+        price_vol_qty_array.second.to_f
+      end.sum
+      volume < depth_volume
+    end
+
     def fetch_prices
       logger.info "Fetching exchange rates" if @options[:verbose]
       buyer[:price] = @buy_client.price(:buy)

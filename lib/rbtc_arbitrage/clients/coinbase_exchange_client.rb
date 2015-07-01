@@ -62,6 +62,17 @@ module RbtcArbitrage
         result = place_new_order_command(amount, adjusted_price, side)
       end
 
+      def order_book_with_volume(action)
+        bids_asks_hash = order_book_command(action)
+        if action == :buy
+          #buy = asks
+          price_entries = bids_asks_hash[:asks]
+        else
+          #sell = bids
+          price_entries = bids_asks_hash[:bids]
+        end
+      end
+
       # `action` is :buy or :sell
       # Returns a Numeric type.
       def price action
