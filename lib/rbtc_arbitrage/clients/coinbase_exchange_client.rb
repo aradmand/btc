@@ -11,6 +11,11 @@ module RbtcArbitrage
       require 'openssl'
       require 'active_support/core_ext/object/try'
 
+      CONNECTION_STATE_INITIAL = 'initial'
+      CONNECTION_STATE_CURL_PERFORMED = 'curl_performed'
+      CONNECTION_STATE_CURL_DECOMPRESSED = 'curl_decompressed'
+      CONNECTION_STATE_CURL_PARSED = 'curl_parsed'
+
       # return a symbol as the name
       # of this exchange
       def exchange
@@ -159,32 +164,39 @@ module RbtcArbitrage
         api_url = "#{exchange_api_url}/transfers"
         path_header = "/transfers"
 
-        curl = Curl::Easy.new
-        headers = {}
-        headers['host'] = 'api.exchange.coinbase.com'
-        headers['method'] = 'POST'
-        headers['path'] = path_header
-        headers['scheme'] = 'https'
-        headers['version'] = 'HTTP/1.1'
-        headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-        headers['accept-encoding'] = 'gzip,deflate,sdch'
-        headers['accept-language'] = 'en-US,en;q=0.8'
-        headers['content-type'] = 'application/json'
-        headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
-        headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
-        headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
-        headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
-        headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
-
-        curl.url = api_url
-        curl.headers = headers
-        curl.verbose = true
-
-        curl.http_post(request_body.to_json)
+        json_data = nil
+        parsed_json = nil
+        curl = nil
+        connection_state = CONNECTION_STATE_INITIAL
 
         begin
+          curl = Curl::Easy.new
+          headers = {}
+          headers['host'] = 'api.exchange.coinbase.com'
+          headers['method'] = 'POST'
+          headers['path'] = path_header
+          headers['scheme'] = 'https'
+          headers['version'] = 'HTTP/1.1'
+          headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+          headers['accept-encoding'] = 'gzip,deflate,sdch'
+          headers['accept-language'] = 'en-US,en;q=0.8'
+          headers['content-type'] = 'application/json'
+          headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+          headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
+          headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
+          headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
+          headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
+
+          curl.url = api_url
+          curl.headers = headers
+          curl.verbose = true
+
+          curl.http_post(request_body.to_json)
+          connection_state = CONNECTION_STATE_CURL_PERFORMED
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
+          connection_state = CONNECTION_STATE_CURL_PARSED
           id = parsed_json['id']
           ledger_id = parsed_json['ledger_id']
           if id.blank? || ledger_id.blank?
@@ -193,7 +205,18 @@ module RbtcArbitrage
           end
 
           {'id' => id, 'ledger_id' => ledger_id}
-        rescue
+        rescue Curl::Err::ConnectionFailedError => e
+          puts "ConnectionFailed Exception occured in 'transfer_funds_command'"
+          # If possible, this would be a good time to retry
+          # retry
+          puts "Connection State:"
+          puts connection_state
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
+        rescue => e
           puts "Error while reading response in transfer_funds_command:"
           puts curl.body_str
           puts "Original request_body:"
@@ -218,39 +241,58 @@ module RbtcArbitrage
 
         path_header = "/orders"
 
-        curl = Curl::Easy.new
-        headers = {}
-        headers['host'] = 'api.exchange.coinbase.com'
-        headers['method'] = 'POST'
-        headers['path'] = path_header
-        headers['scheme'] = 'https'
-        headers['version'] = 'HTTP/1.1'
-        headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-        headers['accept-encoding'] = 'gzip,deflate,sdch'
-        headers['accept-language'] = 'en-US,en;q=0.8'
-        headers['content-type'] = 'application/json'
-        headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
-        headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
-        headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
-        headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
-        headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
-
-        curl.url = api_url
-        curl.headers = headers
-        curl.verbose = true
-
-        curl.http_post(request_body.to_json)
+        json_data = nil
+        parsed_json = nil
+        curl = nil
+        connection_state = CONNECTION_STATE_INITIAL
 
         begin
+          curl = Curl::Easy.new
+          headers = {}
+          headers['host'] = 'api.exchange.coinbase.com'
+          headers['method'] = 'POST'
+          headers['path'] = path_header
+          headers['scheme'] = 'https'
+          headers['version'] = 'HTTP/1.1'
+          headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+          headers['accept-encoding'] = 'gzip,deflate,sdch'
+          headers['accept-language'] = 'en-US,en;q=0.8'
+          headers['content-type'] = 'application/json'
+          headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+          headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
+          headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
+          headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
+          headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
+
+          curl.url = api_url
+          curl.headers = headers
+          curl.verbose = true
+
+          curl.http_post(request_body.to_json)
+          connection_state = CONNECTION_STATE_CURL_PERFORMED
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
+          connection_state = CONNECTION_STATE_CURL_PARSED
+
           order_id = parsed_json['id']
           puts 'Order Id:'
           puts order_id
           puts 'Order Details:'
           puts parsed_json
           return order_id
-        rescue
+        rescue Curl::Err::ConnectionFailedError => e
+          puts "ConnectionFailed Exception occured in 'place_new_order_command'"
+          # If possible, this would be a good time to retry
+          # retry
+          puts "Connection State:"
+          puts connection_state
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
+        rescue => e
           puts "Error while reading response:"
           puts curl.body_str
           puts "Original Request Body:"
@@ -267,32 +309,50 @@ module RbtcArbitrage
 
         path_header = "/orders"
 
-        curl = Curl::Easy.new(api_url) do |http|
-          http.headers['host'] = 'api.exchange.coinbase.com'
-          http.headers['method'] = 'GET'
-          http.headers['path'] = path_header
-          http.headers['scheme'] = 'https'
-          http.headers['version'] = 'HTTP/1.1'
-          http.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-          http.headers['accept-encoding'] = 'gzip,deflate,sdch'
-          http.headers['accept-language'] = 'en-US,en;q=0.8'
-          http.headers['content-type'] = 'application/json;charset=UTF-8'
-          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
-          http.headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
-          http.headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
-          http.headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
-          http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
-        end
+        json_data = nil
+        parsed_json = nil
+        curl = nil
+        connection_state = CONNECTION_STATE_INITIAL
 
         begin
+          curl = Curl::Easy.new(api_url) do |http|
+            http.headers['host'] = 'api.exchange.coinbase.com'
+            http.headers['method'] = 'GET'
+            http.headers['path'] = path_header
+            http.headers['scheme'] = 'https'
+            http.headers['version'] = 'HTTP/1.1'
+            http.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+            http.headers['accept-encoding'] = 'gzip,deflate,sdch'
+            http.headers['accept-language'] = 'en-US,en;q=0.8'
+            http.headers['content-type'] = 'application/json;charset=UTF-8'
+            http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+            http.headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
+            http.headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
+            http.headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
+            http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
+          end
+
           response = curl.perform
+          connection_state = CONNECTION_STATE_CURL_PERFORMED
 
           if curl.body_str.length < 5
             parsed_json = JSON.parse(curl.body_str)
           else
             json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+            connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
             parsed_json = JSON.parse(json_data)
           end
+        rescue Curl::Err::ConnectionFailedError => e
+          puts "ConnectionFailed Exception occured in 'Open Orders command'"
+          # If possible, this would be a good time to retry
+          # retry
+          puts "Connection State:"
+          puts connection_state
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
         rescue => e
           puts 'Exception occured in Open Orders command:'
           binding.pry
@@ -307,30 +367,46 @@ module RbtcArbitrage
 
         path_header = "/accounts"
 
-        curl = Curl::Easy.new(api_url) do |http|
-          http.headers['host'] = 'api.exchange.coinbase.com'
-          http.headers['method'] = 'GET'
-          http.headers['path'] = path_header
-          http.headers['scheme'] = 'https'
-          http.headers['version'] = 'HTTP/1.1'
-          http.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-          http.headers['accept-encoding'] = 'gzip,deflate,sdch'
-          http.headers['accept-language'] = 'en-US,en;q=0.8'
-          http.headers['content-type'] = 'application/json;charset=UTF-8'
-          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
-          http.headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
-          http.headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
-          http.headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
-          http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
-        end
-
         json_data = nil
         parsed_json = nil
+        curl = nil
+        connection_state = CONNECTION_STATE_INITIAL
 
         begin
+          curl = Curl::Easy.new(api_url) do |http|
+            http.headers['host'] = 'api.exchange.coinbase.com'
+            http.headers['method'] = 'GET'
+            http.headers['path'] = path_header
+            http.headers['scheme'] = 'https'
+            http.headers['version'] = 'HTTP/1.1'
+            http.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+            http.headers['accept-encoding'] = 'gzip,deflate,sdch'
+            http.headers['accept-language'] = 'en-US,en;q=0.8'
+            http.headers['content-type'] = 'application/json;charset=UTF-8'
+            http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+            http.headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
+            http.headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
+            http.headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
+            http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
+          end
+
           response = curl.perform
+          connection_state = CONNECTION_STATE_CURL_PERFORMED
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
+          connection_state = CONNECTION_STATE_CURL_PARSED
+        rescue Curl::Err::ConnectionFailedError => e
+          puts "ConnectionFailed Exception occured in 'accounts_command'"
+          # If possible, this would be a good time to retry
+          # retry
+          puts "Connection State:"
+          puts connection_state
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
         rescue => e
           puts "Exception occured in 'accounts_command'"
           binding.pry
