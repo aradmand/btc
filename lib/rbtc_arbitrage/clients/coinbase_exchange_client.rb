@@ -205,7 +205,7 @@ module RbtcArbitrage
           end
 
           {'id' => id, 'ledger_id' => ledger_id}
-        rescue Curl::Err::ConnectionFailedError => e
+        rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'transfer_funds_command'"
           # If possible, this would be a good time to retry
           # retry
@@ -281,7 +281,7 @@ module RbtcArbitrage
           puts 'Order Details:'
           puts parsed_json
           return order_id
-        rescue Curl::Err::ConnectionFailedError => e
+        rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'place_new_order_command'"
           # If possible, this would be a good time to retry
           # retry
@@ -342,7 +342,7 @@ module RbtcArbitrage
             connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
             parsed_json = JSON.parse(json_data)
           end
-        rescue Curl::Err::ConnectionFailedError => e
+        rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'Open Orders command'"
           # If possible, this would be a good time to retry
           # retry
@@ -396,7 +396,7 @@ module RbtcArbitrage
           connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
           connection_state = CONNECTION_STATE_CURL_PARSED
-        rescue Curl::Err::ConnectionFailedError => e
+        rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'accounts_command'"
           # If possible, this would be a good time to retry
           # retry

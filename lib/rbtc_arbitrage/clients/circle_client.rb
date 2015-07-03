@@ -121,39 +121,39 @@ module RbtcArbitrage
     private
 
       def api_address_command(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
-        api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/address"
-
-        path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/address"
-
-        curl = Curl::Easy.new(api_url) do |http|
-          http.headers['host'] = 'www.circle.com'
-          http.headers['method'] = 'GET'
-          http.headers['path'] = path_header
-          http.headers['scheme'] = 'https'
-          http.headers['version'] = 'HTTP/1.1'
-          http.headers['accept'] = 'application/json, text/plain, */*'
-          http.headers['accept-encoding'] = 'gzip,deflate,sdch'
-          http.headers['accept-language'] = 'en-US,en;q=0.8'
-          http.headers['cookie'] = circle_cookie
-          http.headers['referer'] = "https://www.circle.com/request"
-          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
-          http.headers['x-customer-id'] = customer_id
-          http.headers['x-customer-session-token'] = circle_customer_session_token
-        end
-
         response = nil
         json_data = nil
         parsed_json = nil
         connection_state = CONNECTION_STATE_INITIAL
 
         begin
+          api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/address"
+
+          path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/address"
+
+          curl = Curl::Easy.new(api_url) do |http|
+            http.headers['host'] = 'www.circle.com'
+            http.headers['method'] = 'GET'
+            http.headers['path'] = path_header
+            http.headers['scheme'] = 'https'
+            http.headers['version'] = 'HTTP/1.1'
+            http.headers['accept'] = 'application/json, text/plain, */*'
+            http.headers['accept-encoding'] = 'gzip,deflate,sdch'
+            http.headers['accept-language'] = 'en-US,en;q=0.8'
+            http.headers['cookie'] = circle_cookie
+            http.headers['referer'] = "https://www.circle.com/request"
+            http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+            http.headers['x-customer-id'] = customer_id
+            http.headers['x-customer-session-token'] = circle_customer_session_token
+          end
+
           response = curl.perform
           connection_state = CONNECTION_STATE_CURL_PERFORMED
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
           connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
           connection_state = CONNECTION_STATE_CURL_PARSED
-        rescue Curl::Err::ConnectionFailedError => e
+        rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'api_address_command'"
           # If possible, this would be a good time to retry
           # retry
@@ -174,39 +174,39 @@ module RbtcArbitrage
       end
 
       def fiat_account_command(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token)
-        api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/fiatAccounts"
-
-        path_header = "/api/v2/customers/#{customer_id}/fiatAccounts"
-
-        curl = Curl::Easy.new(api_url) do |http|
-          http.headers['host'] = 'www.circle.com'
-          http.headers['method'] = 'GET'
-          http.headers['path'] = path_header
-          http.headers['scheme'] = 'https'
-          http.headers['version'] = 'HTTP/1.1'
-          http.headers['accept'] = 'application/json, text/plain, */*'
-          http.headers['accept-encoding'] = 'gzip,deflate,sdch'
-          http.headers['accept-language'] = 'en-US,en;q=0.8'
-          http.headers['cookie'] = circle_cookie
-          http.headers['referer'] = "https://www.circle.com/deposit"
-          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
-          http.headers['x-customer-id'] = customer_id
-          http.headers['x-customer-session-token'] = circle_customer_session_token
-        end
-
         response = nil
         json_data = nil
         parsed_json = nil
         connection_state = CONNECTION_STATE_INITIAL
 
         begin
+          api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/fiatAccounts"
+
+          path_header = "/api/v2/customers/#{customer_id}/fiatAccounts"
+
+          curl = Curl::Easy.new(api_url) do |http|
+            http.headers['host'] = 'www.circle.com'
+            http.headers['method'] = 'GET'
+            http.headers['path'] = path_header
+            http.headers['scheme'] = 'https'
+            http.headers['version'] = 'HTTP/1.1'
+            http.headers['accept'] = 'application/json, text/plain, */*'
+            http.headers['accept-encoding'] = 'gzip,deflate,sdch'
+            http.headers['accept-language'] = 'en-US,en;q=0.8'
+            http.headers['cookie'] = circle_cookie
+            http.headers['referer'] = "https://www.circle.com/deposit"
+            http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+            http.headers['x-customer-id'] = customer_id
+            http.headers['x-customer-session-token'] = circle_customer_session_token
+          end
+
           response = curl.perform
           connection_state = CONNECTION_STATE_CURL_PERFORMED
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
           connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
           connection_state = CONNECTION_STATE_CURL_PARSED
-        rescue Curl::Err::ConnectionFailedError => e
+        rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'fiat_account_command'"
           # If possible, this would be a good time to retry
           # retry
@@ -293,19 +293,19 @@ module RbtcArbitrage
       end
 
       def api_withdraws_command(withdraw_json_data, customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
-        api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdraws"
-
-        path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdraws"
-
-        withdraw_json_data = withdraw_json_data.to_json
-        content_length = withdraw_json_data.length
-
         json_data = nil
         parsed_json = nil
         curl = nil
         connection_state = CONNECTION_STATE_INITIAL
 
         begin
+          api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdraws"
+
+          path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdraws"
+
+          withdraw_json_data = withdraw_json_data.to_json
+          content_length = withdraw_json_data.length
+
           curl = Curl::Easy.http_post(api_url, withdraw_json_data) do |http|
             http.headers['host'] = 'www.circle.com'
             http.headers['method'] = 'POST'
@@ -330,7 +330,7 @@ module RbtcArbitrage
           connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
           connection_state = CONNECTION_STATE_CURL_PARSED
-        rescue Curl::Err::ConnectionFailedError => e
+        rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'api_withdraws_command'"
           # If possible, this would be a good time to retry
           # retry
@@ -367,19 +367,19 @@ module RbtcArbitrage
       end
 
       def api_deposits_command(deposit_json_data, customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
-        api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/deposits"
-
-        path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/deposits"
-
-        deposit_json_data = deposit_json_data.to_json
-        content_length = deposit_json_data.length
-
         json_data = nil
         parsed_json = nil
         curl = nil
         connection_state = CONNECTION_STATE_INITIAL
 
         begin
+          api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/deposits"
+
+          path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/deposits"
+
+          deposit_json_data = deposit_json_data.to_json
+          content_length = deposit_json_data.length
+
           curl = Curl::Easy.http_post(api_url, deposit_json_data) do |http|
             http.headers['host'] = 'www.circle.com'
             http.headers['method'] = 'POST'
@@ -404,7 +404,7 @@ module RbtcArbitrage
           connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
           connection_state = CONNECTION_STATE_CURL_PARSED
-        rescue Curl::Err::ConnectionFailedError => e
+        rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'api_deposits_command'"
           # If possible, this would be a good time to retry
           # retry
@@ -494,19 +494,19 @@ module RbtcArbitrage
 
       ## Circle Uses the transactions command internally to do btc transfers
       def api_transactions_command(transfer_json_data, customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
-        btc_transfer_json_data = transfer_json_data.to_json
-        content_length = btc_transfer_json_data.length
-
-        api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/transactions"
-
-        path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/transactions"
-
         json_data = nil
         parsed_json = nil
         curl = nil
         connection_state = CONNECTION_STATE_INITIAL
 
         begin
+          btc_transfer_json_data = transfer_json_data.to_json
+          content_length = btc_transfer_json_data.length
+
+          api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/transactions"
+
+          path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/transactions"
+
           curl = Curl::Easy.http_post(api_url, btc_transfer_json_data) do |http|
             http.headers['host'] = 'www.circle.com'
             http.headers['method'] = 'POST'
@@ -533,7 +533,7 @@ module RbtcArbitrage
           connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
           connection_state = CONNECTION_STATE_CURL_PARSED
-        rescue Curl::Err::ConnectionFailedError => e
+        rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'api_transactions_command'"
           # If possible, this would be a good time to retry
           # retry
@@ -567,39 +567,39 @@ module RbtcArbitrage
       end
 
       def api_customers_command(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, break_for_errors = true)
-        api_url = "https://www.circle.com/api/v2/customers/#{customer_id}"
-
-        path_header = "/api/v2/customers/#{customer_id}"
-
-        curl = Curl::Easy.new(api_url) do |http|
-          http.headers['host'] = 'www.circle.com'
-          http.headers['method'] = 'GET'
-          http.headers['path'] = path_header
-          http.headers['scheme'] = 'https'
-          http.headers['version'] = 'HTTP/1.1'
-          http.headers['accept'] = 'application/json, text/plain, */*'
-          http.headers['accept-encoding'] = 'gzip,deflate,sdch'
-          http.headers['accept-language'] = 'en-US,en;q=0.8'
-          http.headers['cookie'] = circle_cookie
-          http.headers['referer'] = "https://www.circle.com/accounts"
-          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
-          http.headers['x-customer-id'] = customer_id
-          http.headers['x-customer-session-token'] = customer_session_token
-        end
-
         json_data = nil
         parsed_json = nil
         response = nil
         connection_state = CONNECTION_STATE_INITIAL
 
         begin
+          api_url = "https://www.circle.com/api/v2/customers/#{customer_id}"
+
+          path_header = "/api/v2/customers/#{customer_id}"
+
+          curl = Curl::Easy.new(api_url) do |http|
+            http.headers['host'] = 'www.circle.com'
+            http.headers['method'] = 'GET'
+            http.headers['path'] = path_header
+            http.headers['scheme'] = 'https'
+            http.headers['version'] = 'HTTP/1.1'
+            http.headers['accept'] = 'application/json, text/plain, */*'
+            http.headers['accept-encoding'] = 'gzip,deflate,sdch'
+            http.headers['accept-language'] = 'en-US,en;q=0.8'
+            http.headers['cookie'] = circle_cookie
+            http.headers['referer'] = "https://www.circle.com/accounts"
+            http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+            http.headers['x-customer-id'] = customer_id
+            http.headers['x-customer-session-token'] = customer_session_token
+          end
+
           response = curl.perform
           connection_state = CONNECTION_STATE_CURL_PERFORMED
           json_data = ActiveSupport::Gzip.decompress(curl.body_str)
           connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
           parsed_json = JSON.parse(json_data)
           connection_state = CONNECTION_STATE_CURL_PARSED
-        rescue Curl::Err::ConnectionFailedError => e
+        rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'api_customers_command'"
           # If possible, this would be a good time to retry
           # retry
