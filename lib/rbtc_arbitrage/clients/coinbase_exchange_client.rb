@@ -208,7 +208,9 @@ module RbtcArbitrage
         rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'transfer_funds_command'"
           # If possible, this would be a good time to retry
-          # retry
+          should_retry = false
+          binding.pry
+          retry if should_retry
           puts "Connection State:"
           puts connection_state
           binding.pry
@@ -284,7 +286,9 @@ module RbtcArbitrage
         rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'place_new_order_command'"
           # If possible, this would be a good time to retry
-          # retry
+          should_retry = false
+          binding.pry
+          retry if should_retry
           puts "Connection State:"
           puts connection_state
           binding.pry
@@ -345,7 +349,9 @@ module RbtcArbitrage
         rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'Open Orders command'"
           # If possible, this would be a good time to retry
-          # retry
+          should_retry = false
+          binding.pry
+          retry if should_retry
           puts "Connection State:"
           puts connection_state
           binding.pry
@@ -399,7 +405,9 @@ module RbtcArbitrage
         rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
           puts "ConnectionFailed Exception occured in 'accounts_command'"
           # If possible, this would be a good time to retry
-          # retry
+          should_retry = false
+          binding.pry
+          retry if should_retry
           puts "Connection State:"
           puts connection_state
           binding.pry
