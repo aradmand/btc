@@ -140,7 +140,7 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
     puts "[Elapsed time - #{end_time - start_time}]"
     puts
 
-    unless @live && buyer_depth_to_cover == false
+    if buyer_depth_to_cover == true
       puts "\t---Executing command---"
       start_time = Time.now
       rbtc_arbitrage.trade

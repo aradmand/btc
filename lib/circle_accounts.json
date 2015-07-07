@@ -3,7 +3,7 @@
     {
       "api_bank_account_id" : 186074,
       "api_customer_id" : 168900,
-      "api_customer_session_token" : "d3e566a8f47c17c5814e366afdc5843dfcb209ac",
+      "api_customer_session_token" : "a393030edec19a7d935a6de08cf84390b27f2462",
       "state" : "inactive",
       "withdrawn_amount_last_seven_days" : 0
     },
@@ -12,7 +12,7 @@
     {
       "api_bank_account_id" : 6937258,
       "api_customer_id" : 6871309,
-      "api_customer_session_token" : "2eeef7e27efc2540ed3c3972ad6215049d90eda4",
+      "api_customer_session_token" : "9f42ac81c97fc429b1270a832dcb3c05cfcead5d",
       "state" : "inactive",
       "withdrawn_amount_last_seven_days" : 0
     },
@@ -21,7 +21,7 @@
     {
       "api_bank_account_id" : 8193838,
       "api_customer_id" : 8116923,
-      "api_customer_session_token" : "c5209611e7cd4fa3b8a6b7414b9febc82be83f53",
+      "api_customer_session_token" : "ea8575fe05796cb9d6b7131f6323ed45d8bc3c65",
       "state" : "inactive",
       "withdrawn_amount_last_seven_days" : 0
     }
