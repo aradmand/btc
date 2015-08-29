@@ -23,6 +23,8 @@ circle_account_hash = JSON.parse(circle_accounts_file)
 
 circle_accounts_array = []
 
+
+
 # Determine the state of each account
 circle_account_hash.each do |email, account|
   circle_account = CircleAccount::CircleAccount.new(
@@ -37,7 +39,9 @@ circle_account_hash.each do |email, account|
   circle_account.configure_state!
 
   circle_accounts_array << circle_account
+  break
 end
+
 
 # Set only one account to active
 circle_accounts_array.each do |account|
@@ -60,13 +64,13 @@ puts active_circle_account.try(:email)
 
 # Transfer BTC from inactive / maxed_out accounts to
 # Active account:
-circle_accounts_array.each do |account|
-  account.transfer_btc_to_active_account(active_circle_account)
-end
+# circle_accounts_array.each do |account|
+#   account.transfer_btc_to_active_account(active_circle_account)
+# end
 
 
 # Instantiate Circle Client
-circle_client = RbtcArbitrage::Clients::CircleClient.new(circle_account: active_circle_account, volume: 0.01)
+circle_client = RbtcArbitrage::Clients::CircleClient.new(circle_account: active_circle_account, volume: 0.02)
 
 ####################
 # Validate Env
@@ -150,14 +154,16 @@ puts circle_sell_price
 #   puts buy
 # end
 
-# puts "Selling #{circle_client.options[:volume]} BTC"
-# sell = circle_client.trade(:sell)
-# if sell == 0
-#   puts "Sucessfully sold #{circle_client.options[:volume]} BTC"
-# else
-#   puts "Error selling BTC"
-#   puts sell
-# end
+binding.pry
+
+puts "Selling #{circle_client.options[:volume]} BTC"
+sell = circle_client.trade(:sell)
+if sell == 0
+  puts "Sucessfully sold #{circle_client.options[:volume]} BTC"
+else
+  puts "Error selling BTC"
+  puts sell
+end
 
 
 

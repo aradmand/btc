@@ -279,21 +279,22 @@ module RbtcArbitrage
         fiat_account_command_result = fiat_account_command
         fiat_account_id = fiat_account_command_result[:fiat_account_id]
 
-        customers_command_result = api_customers_command
+        #customers_command_result = api_customers_command
+        quote = api_quote_command_v4
 
-        exchange_rate_object = customers_command_result[:exchange_rate_object]
-        exchange_rate_object_for_deposit_request = exchange_rate_object["USD"]
-        exchange_rate = customers_command_result[:exchange_rate]
-        fiat_value = calculate_fiat_value_for_exchange_rate(exchange_rate, volume)
+        # exchange_rate_object = customers_command_result[:exchange_rate_object]
+        # exchange_rate_object_for_deposit_request = exchange_rate_object["USD"]
+        # exchange_rate = customers_command_result[:exchange_rate]
+        # fiat_value = calculate_fiat_value_for_exchange_rate(exchange_rate, volume)
 
-        withdraw_json_data = {"withdraw" =>
-          {"fiatAccountId" => fiat_account_id,
-            "fiatValue" => fiat_value,
-            "exchangeRate" => exchange_rate_object_for_deposit_request
+        withdrawal_json_data = {
+          "withdrawal" => {
+            "fiatAccountId" => fiat_account_id,
+            "quote" => quote[:quote_object]
           }
         }
 
-        api_withdraws_command_result = api_withdraws_command(withdraw_json_data)
+        api_withdraws_command_result = api_withdraws_command(withdrawal_json_data)
       end
 
       def api_withdraws_command(withdraw_json_data, customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
@@ -303,9 +304,9 @@ module RbtcArbitrage
         connection_state = CONNECTION_STATE_INITIAL
 
         begin
-          api_url = "https://www.circle.com/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdraws"
+          api_url = "https://www.circle.com/api/v4/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdrawals"
 
-          path_header = "/api/v2/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdraws"
+          path_header = "/api/v4/customers/#{customer_id}/accounts/#{circle_bank_account_id}/withdrawals"
 
           withdraw_json_data = withdraw_json_data.to_json
           content_length = withdraw_json_data.length
@@ -325,6 +326,8 @@ module RbtcArbitrage
             http.headers['origin'] = 'https://www.circle.com'
             http.headers['referer'] = "https://www.circle.com/withdraw/confirm"
             http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+            http.headers['x-app-id'] = 'angularjs'
+            http.headers['x-app-version'] = '2f5fdced5d'
             http.headers['x-customer-id'] = customer_id
             http.headers['x-customer-session-token'] = circle_customer_session_token
           end
@@ -369,7 +372,7 @@ module RbtcArbitrage
         end
 
         satoshi_value_withdrawn = withdraw_response_status['response']['transaction']['satoshiValue']
-        {status: response_code, satoshi_value: satoshi_value_withdrawn}
+        {status: response_code}
       end
 
       def api_deposits_command(deposit_json_data, customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, circle_bank_account_id = circle_bank_account_id)
@@ -575,6 +578,71 @@ module RbtcArbitrage
         end
         response_code
       end
+
+      def api_quote_command_v4(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, break_for_errors = true, volume = @options[:volume])
+        json_data = nil
+        parsed_json = nil
+        response = nil
+        connection_state = CONNECTION_STATE_INITIAL
+
+        begin
+          api_url = "https://www.circle.com/api/v4/customers/#{customer_id}/quote/BTC/USD/BTC/#{(volume * 100000000).to_i}"
+
+          path_header = "/api/v4/customers/#{customer_id}/quote/BTC/USD/BTC/#{(volume * 100000000).to_i}"
+
+          curl = Curl::Easy.new(api_url) do |http|
+            http.headers['host'] = 'www.circle.com'
+            http.headers['method'] = 'GET'
+            http.headers['path'] = path_header
+            http.headers['scheme'] = 'https'
+            http.headers['version'] = 'HTTP/1.1'
+            http.headers['accept'] = 'application/json, text/plain, */*'
+            http.headers['accept-encoding'] = 'gzip,deflate,sdch'
+            http.headers['accept-language'] = 'en-US,en;q=0.8'
+            http.headers['cookie'] = circle_cookie
+            http.headers['referer'] = "https://www.circle.com/withdraw"
+            http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+            http.headers['x-app-id'] = 'angularjs'
+            http.headers['x-app-version'] = '715f41225f'
+            http.headers['x-customer-id'] = customer_id
+            http.headers['x-customer-session-token'] = customer_session_token
+          end
+
+          response = curl.perform
+          connection_state = CONNECTION_STATE_CURL_PERFORMED
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
+          parsed_json = JSON.parse(json_data)
+          connection_state = CONNECTION_STATE_CURL_PARSED
+        rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
+          puts "ConnectionFailed Exception occured in 'api_customers_command'"
+          # If possible, this would be a good time to retry
+          should_retry = false
+          binding.pry
+          retry if should_retry
+          puts "Connection State:"
+          puts connection_state
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
+        rescue => e
+          puts "Exception occured in 'api_customers_command'"
+          binding.pry if break_for_errors
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
+        end
+
+        quote_object = parsed_json['response']['quote']
+
+        {
+          quote_object: quote_object
+        }
+      end
+
 
       def api_customers_command(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, break_for_errors = true)
         json_data = nil

@@ -62,7 +62,7 @@ MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 def set_trading_parameters
   @buyer = ENV['BTC_BUYER'].try(:to_sym) || :coinbase_exchange
   @seller = ENV['BTC_SELLER'].try(:to_sym) || :circle
-  @volume = 0.4
+  @volume = 0.02
 
   args_hash = Hash[*ARGV]
   @live = args_hash['--live'] == 'true'
@@ -140,7 +140,7 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
     puts "[Elapsed time - #{end_time - start_time}]"
     puts
 
-    if buyer_depth_to_cover == true
+    if buyer_depth_to_cover == true || @live == false
       puts "\t---Executing command---"
       start_time = Time.now
       rbtc_arbitrage.trade
