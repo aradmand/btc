@@ -279,13 +279,7 @@ module RbtcArbitrage
         fiat_account_command_result = fiat_account_command
         fiat_account_id = fiat_account_command_result[:fiat_account_id]
 
-        #customers_command_result = api_customers_command
         quote = api_quote_command_v4
-
-        # exchange_rate_object = customers_command_result[:exchange_rate_object]
-        # exchange_rate_object_for_deposit_request = exchange_rate_object["USD"]
-        # exchange_rate = customers_command_result[:exchange_rate]
-        # fiat_value = calculate_fiat_value_for_exchange_rate(exchange_rate, volume)
 
         withdrawal_json_data = {
           "withdrawal" => {
@@ -371,7 +365,6 @@ module RbtcArbitrage
           puts withdraw_response_status
         end
 
-        satoshi_value_withdrawn = withdraw_response_status['response']['transaction']['satoshiValue']
         {status: response_code}
       end
 
@@ -642,7 +635,6 @@ module RbtcArbitrage
           quote_object: quote_object
         }
       end
-
 
       def api_customers_command(customer_id = circle_customer_id, customer_session_token = circle_customer_session_token, break_for_errors = true)
         json_data = nil

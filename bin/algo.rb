@@ -62,7 +62,7 @@ MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 def set_trading_parameters
   @buyer = ENV['BTC_BUYER'].try(:to_sym) || :coinbase_exchange
   @seller = ENV['BTC_SELLER'].try(:to_sym) || :circle
-  @volume = 0.02
+  @volume = 0.4
 
   args_hash = Hash[*ARGV]
   @live = args_hash['--live'] == 'true'

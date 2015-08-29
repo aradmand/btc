@@ -186,6 +186,7 @@ module RbtcArbitrage
 
         @buy_client.buy
         @sell_client.sell
+
         @buy_client.transfer @sell_client
       end
     end
