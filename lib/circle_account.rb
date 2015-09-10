@@ -9,14 +9,16 @@ module CircleAccount
       :api_customer_id,
       :api_customer_session_token,
       :email,
+      :min_profit_percent,
       :state,
       :withdrawn_amount_last_seven_days
 
-    def initialize(api_bank_account_id, api_customer_id, api_customer_session_token, state, withdrawn_amount_last_seven_days, email)
+    def initialize(api_bank_account_id, api_customer_id, api_customer_session_token, state, withdrawn_amount_last_seven_days, email, min_profit_percent)
       @api_bank_account_id = api_bank_account_id
       @api_customer_id = api_customer_id
       @api_customer_session_token = api_customer_session_token
       @email = email
+      @min_profit_percent = min_profit_percent
       @state = state
       @withdrawn_amount_last_seven_days = withdrawn_amount_last_seven_days
     end
@@ -130,7 +132,8 @@ module CircleAccount
           account['api_customer_session_token'],
           account['state'],
           account['withdrawn_amount_last_seven_days'],
-          email
+          email,
+          account['min_profit_percent']
         )
 
         begin

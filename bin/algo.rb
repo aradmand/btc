@@ -1,10 +1,10 @@
-# Zeta Algo
+# Iota Algo
 #
 # This Algorithm is optimized for arbitrage trading between the circle and
 # coinbase_exchange exchanges.
 #
 # Features of this strategey include:
-# => This is the first strategy capable of trading multiple circle accounts
+# => This is capable of trading multiple circle accounts
 # => Since Circle limits our withdraws to $5,000 / week, this strategy is designed
 # => to use multiple circle accounts to stay under this limit. Of Note:
 #
@@ -12,6 +12,9 @@
 # => This file has been added as a way to dynamically configure Circle Accounts
 # => Circle env variables are no longer needed to configure circle_client, as all
 # => values come from this file
+#
+# => In particular, this strategy allows for the setting of a MIN_PROFIT_PERCENT on
+# => a per-account basis.
 #
 # => circle_account.rb
 # => This file has been added to be the in-memory representation of a circle_account.
@@ -72,7 +75,7 @@ end
 def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
   error_message = ''
   begin
-    percent = MIN_PERCENT_PROFIT
+    percent = circle_sell_client.min_profit_percent || circle_sell_client.min_profit_percent || MIN_PERCENT_PROFIT
     sleep(5.0)
     puts
     puts

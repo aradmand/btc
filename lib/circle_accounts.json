@@ -1,36 +1,40 @@
 {
   "arian.radmand@gmail.com" :
     {
+      "min_profit_percent" : 0.55,
       "api_bank_account_id" : 186074,
       "api_customer_id" : 168900,
-      "api_customer_session_token" : "78c527a132da8f40af19e80198e45b40bee7224e",
+      "api_customer_session_token" : "aaf76f7f07038a7c5586aef5a1ac299679e6e954",
       "state" : "inactive",
       "withdrawn_amount_last_seven_days" : 0
     },
 
   "rinrdmd@gmail.com" :
     {
+      "min_profit_percent" : 0.65,
       "api_bank_account_id" : 6937258,
       "api_customer_id" : 6871309,
-      "api_customer_session_token" : "95615d446de4237d2ad865c811ee123b7df320d6",
+      "api_customer_session_token" : "1e6fd4d3585deb365a4b4e9dcda5885f9ff4affb",
       "state" : "inactive",
       "withdrawn_amount_last_seven_days" : 0
     },
 
   "rjamarge@gmail.com" :
     {
+      "min_profit_percent" : 0.75,
       "api_bank_account_id" : 8193838,
       "api_customer_id" : 8116923,
-      "api_customer_session_token" : "3db3a0967b3f6fd3139a1f61e1b1359ed2476e5e",
+      "api_customer_session_token" : "ef05adeba576ad7ae3d1778c85de5af9a9236734",
       "state" : "inactive",
       "withdrawn_amount_last_seven_days" : 0
     },
 
   "diane.l.hake@gmail.com" :
     {
+      "min_profit_percent" : 0.85,
       "api_bank_account_id" : 9711531,
       "api_customer_id" : 9637082,
-      "api_customer_session_token" : "2feb1e8624d0a18f9a824403961728292d31aefc",
+      "api_customer_session_token" : "a946bf404468cbaa298cf255952d3e6d5c9d80bb",
       "state" : "inactive",
       "withdrawn_amount_last_seven_days" : 0
     }
