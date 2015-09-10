@@ -157,7 +157,7 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
         @accumulated_profit_in_cents += (profit_dollars * 100)
 
         live_mode = @live == true
-        log_profit_and_loss_data(buyer_price, seller_price, profit_dollars, live_mode)
+        log_profit_and_loss_data(buyer_price, seller_price, profit_dollars, profit_percent, live_mode)
       end
     end
 
@@ -171,7 +171,7 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
   [profit_dollars, profit_percent, rbtc_arbitrage, error_message]
 end
 
-def log_profit_and_loss_data(buyer_price, seller_price, profit_dollars, live_mode)
+def log_profit_and_loss_data(buyer_price, seller_price, profit_dollars, profit_percent, live_mode)
   @log_time ||= Time.now.strftime("%Y_%m_%d")
   filename = "/Users/jupiter/tmp/btc_logs/profit_loss_#{live_mode == true ? 'LIVE' : 'test'}_#{@log_time}.csv"
 
@@ -182,9 +182,9 @@ def log_profit_and_loss_data(buyer_price, seller_price, profit_dollars, live_mod
   CSV.open( filename, 'ab' ) do |writer|
       unless @header_placed == true
         @header_placed = true
-        writer << ['Timestamp', 'Buyer Price', 'Seller Price', 'Profit']
+        writer << ['Timestamp', 'Buyer Price', 'Seller Price', 'Profit', 'Profit Percent']
       end
-      writer << [time, buyer_price, seller_price, profit_dollars]
+      writer << [time, buyer_price, seller_price, profit_dollars, profit_percent]
   end
 end
 
