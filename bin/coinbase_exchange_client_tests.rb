@@ -51,6 +51,7 @@ open_orders = coinbase_exchange_client.open_orders
 puts "#{open_orders.size} Open Orders:"
 puts open_orders
 
+
 ####################
 # Balance
 ####################
@@ -102,6 +103,15 @@ coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
 
 
 
+
+####################
+#  Fills
+#
+##############################
+
+puts 'List of fills on coinbase exchange:'
+fills = coinbase_exchange_client.fills('8c9ba6b9-c0e6-4f13-bb05-98611dcd7994')
+puts fills
 
 
 ####################

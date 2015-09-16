@@ -239,11 +239,11 @@ while enabled == true
     profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2, nil, active_circle_account)
   end
 
-  if @step && profit_percent >= MIN_PERCENT_PROFIT
+  if @step && profit_percent >= active_circle_account.min_profit_percent
     binding.pry
   end
 
-  while profit_percent >= MIN_PERCENT_PROFIT &&
+  while profit_percent >= active_circle_account.min_profit_percent &&
     no_open_orders?(rbtc_arbitrage.buy_client, rbtc_arbitrage.sell_client) == false
 
     open_order_sleep = 10.0
@@ -251,7 +251,7 @@ while enabled == true
     sleep(open_order_sleep)
   end
 
-  if profit_percent >= MIN_PERCENT_PROFIT && !exception_due_to_insufficient_funds?(error_message)
+  if profit_percent >= active_circle_account.min_profit_percent && !exception_due_to_insufficient_funds?(error_message)
     # Sleep after profitable trade to avoid getting flagged for
     # frequent trades on Circle
     sleep_time = 10

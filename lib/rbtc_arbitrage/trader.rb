@@ -184,7 +184,11 @@ module RbtcArbitrage
       else
         logger.info "Trading live!" if options[:verbose]
 
-        @buy_client.buy
+        #TODO - Start here and adjust the amount we need to sell
+        # on circle. Have to pipe through the the size of the order that was filled on coinbase exchange,
+        # since we're now using the ioc orders
+        buy_result = @buy_client.buy
+#        filled_amount = @buy_client.fills()
         @sell_client.sell
 
         @buy_client.transfer @sell_client

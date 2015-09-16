@@ -64,7 +64,11 @@ module RbtcArbitrage
         else
           'sell'
         end
+
         result = place_new_order_command(amount, adjusted_price, side)
+        {
+          order_id: result
+        }
       end
 
       def order_book_with_volume(action)
@@ -137,6 +141,14 @@ module RbtcArbitrage
 
       def open_orders
         orders_command
+      end
+
+      def fills(order_id = nil)
+        fills = fills_command(order_id)
+        {
+          order_id: fills.first['order_id'],
+          size: fills.first['size']
+        }
       end
 
       private
@@ -234,6 +246,7 @@ module RbtcArbitrage
           "size" => size.round(8),
           "price" => price,
           "side" => side,
+          "time_in_force" => "IOC",
           "product_id" => product_id
         }
 
@@ -303,6 +316,71 @@ module RbtcArbitrage
           puts request_body
           binding.pry
           return nil
+        end
+      end
+
+      def fills_command(order_id = nil)
+        params = "product_id=BTC-USD"
+        if order_id
+          params += "&order_id=#{order_id}"
+        end
+
+        auth_headers = signature("/fills?#{params}", '', nil, 'GET')
+
+        api_url = "#{exchange_api_url}/fills?#{params}"
+
+        path_header = "/fills"
+
+        json_data = nil
+        parsed_json = nil
+        curl = nil
+        connection_state = CONNECTION_STATE_INITIAL
+
+        begin
+          curl = Curl::Easy.new(api_url) do |http|
+            http.headers['host'] = 'api.exchange.coinbase.com'
+            http.headers['method'] = 'GET'
+            http.headers['path'] = path_header
+            http.headers['scheme'] = 'https'
+            http.headers['version'] = 'HTTP/1.1'
+            http.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+            http.headers['accept-encoding'] = 'gzip,deflate,sdch'
+            http.headers['accept-language'] = 'en-US,en;q=0.8'
+            http.headers['content-type'] = 'application/json;charset=UTF-8'
+            http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+            http.headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
+            http.headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
+            http.headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
+            http.headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
+          end
+
+          response = curl.perform
+          connection_state = CONNECTION_STATE_CURL_PERFORMED
+
+          if curl.body_str.length < 5
+            parsed_json = JSON.parse(curl.body_str)
+          else
+            json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+            connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
+            parsed_json = JSON.parse(json_data)
+          end
+        rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
+          puts "ConnectionFailed Exception occured in 'Fills command'"
+          # If possible, this would be a good time to retry
+          should_retry = false
+          binding.pry
+          retry if should_retry
+          puts "Connection State:"
+          puts connection_state
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
+        rescue => e
+          puts 'Exception occured in Fills command:'
+          binding.pry
+          puts e.message
         end
       end
 
