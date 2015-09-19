@@ -75,7 +75,7 @@ end
 def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
   error_message = ''
   begin
-    percent = circle_sell_client.min_profit_percent || circle_sell_client.min_profit_percent || MIN_PERCENT_PROFIT
+    percent = circle_sell_client.try(:min_profit_percent) || circle_buy_client.try(:min_profit_percent) || MIN_PERCENT_PROFIT
     sleep(5.0)
     puts
     puts
@@ -243,7 +243,7 @@ while enabled == true
     binding.pry
   end
 
-  while profit_percent >= MIN_PERCENT_PROFIT &&
+  while profit_percent >= active_circle_account.try(:min_profit_percent) &&
     no_open_orders?(rbtc_arbitrage.buy_client, rbtc_arbitrage.sell_client) == false
 
     open_order_sleep = 10.0
@@ -251,7 +251,7 @@ while enabled == true
     sleep(open_order_sleep)
   end
 
-  if profit_percent >= MIN_PERCENT_PROFIT && !exception_due_to_insufficient_funds?(error_message)
+  if profit_percent >= active_circle_account.try(:min_profit_percent) && !exception_due_to_insufficient_funds?(error_message)
     # Sleep after profitable trade to avoid getting flagged for
     # frequent trades on Circle
     sleep_time = 10
