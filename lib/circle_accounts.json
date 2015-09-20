@@ -11,7 +11,7 @@
 
   "rinrdmd@gmail.com" :
     {
-      "min_profit_percent" : 0.6,
+      "min_profit_percent" : 0.7,
       "api_bank_account_id" : 6937258,
       "api_customer_id" : 6871309,
       "api_customer_session_token" : "d0efc72a2ef9153c53b58d8ffea2cf67f1e7e06c",
@@ -21,7 +21,7 @@
 
   "rjamarge@gmail.com" :
     {
-      "min_profit_percent" : 0.75,
+      "min_profit_percent" : 0.6,
       "api_bank_account_id" : 8193838,
       "api_customer_id" : 8116923,
       "api_customer_session_token" : "a055047996c77fb7bb30881d57df07470ff06086",
@@ -31,7 +31,7 @@
 
   "diane.l.hake@gmail.com" :
     {
-      "min_profit_percent" : 0.85,
+      "min_profit_percent" : 0.6,
       "api_bank_account_id" : 9711531,
       "api_customer_id" : 9637082,
       "api_customer_session_token" : "0d7e89a102ccd8ae48074f77ef1a3c8b78ab9090",
@@ -41,7 +41,7 @@
 
   "joanneradmand@gmail.com" :
     {
-      "min_profit_percent" : 0.85,
+      "min_profit_percent" : 0.55,
       "api_bank_account_id" : 10788402,
       "api_customer_id" : 10710222,
       "api_customer_session_token" : "313b849e1a0a445a7a3c64579ebefc8623d3b3a3",
