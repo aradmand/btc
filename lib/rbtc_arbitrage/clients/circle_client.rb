@@ -279,7 +279,8 @@ module RbtcArbitrage
         fiat_account_command_result = fiat_account_command
         fiat_account_id = fiat_account_command_result[:fiat_account_id]
 
-        quote = api_quote_command_v4
+        sell_volume = volume || @options[:volume]
+        quote = api_quote_command_v4(nil, nil, nil, sell_volume)
 
         withdrawal_json_data = {
           "withdrawal" => {
@@ -577,6 +578,8 @@ module RbtcArbitrage
         parsed_json = nil
         response = nil
         connection_state = CONNECTION_STATE_INITIAL
+
+binding.pry
 
         begin
           api_url = "https://www.circle.com/api/v4/customers/#{customer_id}/quote/BTC/USD/BTC/#{(volume * 100000000).to_i}"

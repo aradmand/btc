@@ -145,9 +145,11 @@ module RbtcArbitrage
 
       def fills(order_id = nil)
         fills = fills_command(order_id)
+
+        size = fills.blank? ? 0 : fills.try(:first).try(:[], 'size')
         {
-          order_id: fills.first['order_id'],
-          size: fills.first['size']
+          order_id: fills.try(:first).try(:[], 'order_id') || order_id,
+          size: size
         }
       end
 

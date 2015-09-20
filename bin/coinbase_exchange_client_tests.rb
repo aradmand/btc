@@ -105,16 +105,6 @@ coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
 
 
 ####################
-#  Fills
-#
-##############################
-
-puts 'List of fills on coinbase exchange:'
-fills = coinbase_exchange_client.fills('8c9ba6b9-c0e6-4f13-bb05-98611dcd7994')
-puts fills
-
-
-####################
 #  Trade
 #
 # Uncomment the following section to buy :volume BTC
@@ -123,8 +113,9 @@ puts fills
 
 # puts "Buying #{coinbase_exchange_client.options[:volume]} BTC"
 # buy = coinbase_exchange_client.trade(:buy)
-# if buy == 0
+# if buy[:order_id].present?
 #   puts "Sucessfully bought #{coinbase_exchange_client.options[:volume]} BTC"
+#   puts buy
 # else
 #   puts "Error buying BTC"
 #   puts buy
@@ -140,7 +131,14 @@ puts fills
 # end
 
 
+####################
+#  Fills
+#
+##############################
 
+# puts 'List of fills on coinbase exchange:'
+# fills = coinbase_exchange_client.fills(buy[:order_id])
+# puts fills
 
 
 
