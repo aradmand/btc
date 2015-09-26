@@ -190,7 +190,7 @@ module RbtcArbitrage
         order_id = buy_result.try(:[], 'order_id')
 
         fills = @buy_client.fills(order_id)
-        filled_amount = fills.try(:[], 'size')
+        filled_amount = @buy_client.calculate_total_filled_size(fills)
 
         if filled_amount > 0
           @sell_client.sell({ volume: filled_amount })

@@ -27,13 +27,16 @@ circle_accounts_array = []
 
 # Determine the state of each account
 circle_account_hash.each do |email, account|
+  binding.pry
+
   circle_account = CircleAccount::CircleAccount.new(
     account['api_bank_account_id'],
     account['api_customer_id'],
     account['api_customer_session_token'],
     account['state'],
     account['withdrawn_amount_last_seven_days'],
-    email
+    email,
+    account['min_profit_percent']
   )
 
   circle_account.configure_state!

@@ -146,11 +146,25 @@ module RbtcArbitrage
       def fills(order_id = nil)
         fills = fills_command(order_id)
 
-        size = fills.blank? ? 0 : fills.try(:first).try(:[], 'size')
-        {
-          order_id: fills.try(:first).try(:[], 'order_id') || order_id,
-          size: size
-        }
+        if fills.blank?
+          []
+        else
+          fills.map do |fill_response|
+            {
+              'order_id' => fills.try(:first).try(:[], 'order_id') || order_id,
+              'size' => fill_response['size'].try(:to_f),
+              'settled' => fill_response['settled']
+            }
+          end
+        end
+      end
+
+      def calculate_total_filled_size(fills_array)
+        fills_array.map do |fill_response|
+          if fill_response['settled'] == true && fill_response['size'].present?
+            fill_response['size'].try(:to_f)
+          end
+        end.compact.sum
       end
 
       private
@@ -358,7 +372,6 @@ module RbtcArbitrage
 
           response = curl.perform
           connection_state = CONNECTION_STATE_CURL_PERFORMED
-
           if curl.body_str.length < 5
             parsed_json = JSON.parse(curl.body_str)
           else

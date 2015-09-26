@@ -282,6 +282,9 @@ module RbtcArbitrage
         sell_volume = volume || @options[:volume]
         quote = api_quote_command_v4(nil, nil, nil, sell_volume)
 
+binding.pry
+
+
         withdrawal_json_data = {
           "withdrawal" => {
             "fiatAccountId" => fiat_account_id,
