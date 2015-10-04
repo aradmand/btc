@@ -11,6 +11,7 @@ module CircleAccount
       :email,
       :min_profit_percent,
       :state,
+      :weekly_bank_withdraw_limit,
       :withdrawn_amount_last_seven_days
 
     def initialize(api_bank_account_id, api_customer_id, api_customer_session_token, state, withdrawn_amount_last_seven_days, email, min_profit_percent)
@@ -44,12 +45,12 @@ module CircleAccount
       end
     end
 
-    def self.find_active_account(previous_active_account = nil)
+    def self.find_active_account(previous_active_account = nil, last_circle_sell_price = nil)
       circle_account_hash = read_accounts_configuration_file
       return nil unless circle_account_hash
 
       # Determine the state of each account
-      circle_accounts_array = set_circle_accounts_array(circle_account_hash)
+      circle_accounts_array = set_circle_accounts_array(circle_account_hash, last_circle_sell_price)
 
       # Take a random active account and use it to trade
       active_account_array = circle_accounts_array.reject { |account| account.state != STATE_ACTIVE }
@@ -70,18 +71,46 @@ module CircleAccount
       RbtcArbitrage::Clients::CircleClient.new({circle_account: self}.merge(config))
     end
 
-    def configure_state!
+    def configure_state!(last_circle_sell_price = nil)
+      ####
+      ##  New way of finding limit, based on each individual account's
+      ##  weekly withdraw limit
       withdraw_limit = circle_client.withdraw_limit_trailing_seven_days(false)
-      btc_balance, usd_balance  = circle_client.balance(false)
+      weekly_bank_withdraw_limit = circle_client.weekly_bank_withdraw_limit(false)
+
+      btc_balance, usd_balance = circle_client.balance(false)
+
+      weekly_bank_withdraw_limit_in_cents = (weekly_bank_withdraw_limit / 100.0)
+      last_circle_sell_price_volume_weighted = (0.4 * last_circle_sell_price)
+      weekly_bank_withdraw_limit_padding = last_circle_sell_price_volume_weighted * 0.3
+      adjusted_weekly_bank_withdraw_limit = weekly_bank_withdraw_limit_in_cents - (last_circle_sell_price_volume_weighted + weekly_bank_withdraw_limit_padding)
 
       self.withdrawn_amount_last_seven_days = withdraw_limit
-      if withdrawn_amount_last_seven_days > 400000
+      if withdrawn_amount_last_seven_days > adjusted_weekly_bank_withdraw_limit
         self.state = STATE_MAXED_OUT
-      elsif btc_balance.to_f > 0.4 && withdrawn_amount_last_seven_days < 400000
+      elsif btc_balance.to_f > 0.4 && withdrawn_amount_last_seven_days < adjusted_weekly_bank_withdraw_limit
         self.state = STATE_ACTIVE
       else
         self.state = STATE_INACTIVE
       end
+      ###
+
+
+      ## Old way of finding limit, hardcoding
+      # withdraw_limit = circle_client.withdraw_limit_trailing_seven_days(false)
+      # weekly_bank_withdraw_limit = circle_client.weekly_bank_withdraw_limit(false)
+
+      # btc_balance, usd_balance = circle_client.balance(false)
+
+      # self.withdrawn_amount_last_seven_days = withdraw_limit
+      # if withdrawn_amount_last_seven_days > 400000
+      #   self.state = STATE_MAXED_OUT
+      # elsif btc_balance.to_f > 0.4 && withdrawn_amount_last_seven_days < 400000
+      #   self.state = STATE_ACTIVE
+      # else
+      #   self.state = STATE_INACTIVE
+      # end
+      ###
     end
 
     def still_active?
@@ -121,7 +150,7 @@ module CircleAccount
       end
     end
 
-    def self.set_circle_accounts_array(circle_account_hash)
+    def self.set_circle_accounts_array(circle_account_hash, last_circle_sell_price = nil)
       circle_accounts_array = []
 
       # Determine the state of each account
@@ -137,7 +166,7 @@ module CircleAccount
         )
 
         begin
-          circle_account.configure_state!
+          circle_account.configure_state!(last_circle_sell_price)
         rescue => e
           puts "Unable to configure account [ #{email} ]"
           next

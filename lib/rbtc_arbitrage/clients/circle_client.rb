@@ -112,7 +112,13 @@ module RbtcArbitrage
         []
       end
 
-      # Weekly withdraw limit in Cents
+      # Total weekly withdraw limit for this account
+      def weekly_bank_withdraw_limit(break_for_errors = true)
+        customers_command_result = api_customers_command(circle_customer_id, circle_customer_session_token, break_for_errors)
+        customers_command_result[:weekly_bank_withdraw_limit]
+      end
+
+      # Amount that has been withdrawn so far for this account
       def withdraw_limit_trailing_seven_days(break_for_errors = true)
         customers_command_result = api_customers_command(circle_customer_id, circle_customer_session_token, break_for_errors)
         customers_command_result[:bank_withdraw_trailing_seven_days]
@@ -614,7 +620,7 @@ binding.pry
           parsed_json = JSON.parse(json_data)
           connection_state = CONNECTION_STATE_CURL_PARSED
         rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
-          puts "ConnectionFailed Exception occured in 'api_customers_command'"
+          puts "ConnectionFailed Exception occured in 'api_quote_command_v4'"
           # If possible, this would be a good time to retry
           should_retry = false
           binding.pry
@@ -627,7 +633,7 @@ binding.pry
           puts "Exception:"
           puts e.message
         rescue => e
-          puts "Exception occured in 'api_customers_command'"
+          puts "Exception occured in 'api_quote_command_v4'"
           binding.pry if break_for_errors
           puts "curl.body_str:"
           puts curl.body_str
@@ -703,6 +709,8 @@ binding.pry
         account_balance_in_btc_normalized = account_balance_in_btc_raw / 100000000.0
         account_balance_in_usd = exchange_rate * account_balance_in_btc_normalized
         bank_withdraw_trailing_seven_days = parsed_json['response']['customer']['customerLimits']['bankWithdrawTrailingSevenDays']
+        weekly_bank_withdraw_limit = parsed_json['response']['customer']['weeklyBankWithdrawLimit']
+
 
         {
           exchange_rate_object: exchange_rate_object,
@@ -710,7 +718,8 @@ binding.pry
           account_balance_in_btc_raw: account_balance_in_btc_raw,
           account_balance_in_btc_normalized: account_balance_in_btc_normalized,
           account_balance_in_usd: account_balance_in_usd,
-          bank_withdraw_trailing_seven_days: bank_withdraw_trailing_seven_days
+          bank_withdraw_trailing_seven_days: bank_withdraw_trailing_seven_days,
+          weekly_bank_withdraw_limit: weekly_bank_withdraw_limit
         }
       end
 

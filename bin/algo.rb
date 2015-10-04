@@ -55,6 +55,7 @@ require 'rbtc_arbitrage'
 require 'circle_account'
 
 @accumulated_profit_in_cents = 0
+@last_circle_sell_price = 200
 enabled = true
 profit = 0
 
@@ -143,6 +144,8 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
     puts "[Elapsed time - #{end_time - start_time}]"
     puts
 
+    @last_circle_sell_price = seller_price
+
     if buyer_depth_to_cover == true || @live == false
       puts "\t---Executing command---"
       start_time = Time.now
@@ -209,7 +212,7 @@ active_circle_account = nil
 while enabled == true
   # Read in circle_accounts.json to get first ACTIVE account
   puts "Finding Active Circle Account ..."
-  active_circle_account = CircleAccount::CircleAccount.find_active_account(active_circle_account)
+  active_circle_account = CircleAccount::CircleAccount.find_active_account(active_circle_account, @last_circle_sell_price)
   puts "Using Circle Account [#{active_circle_account.try(:email)}]"
 
   # Transfer outstanding BTC balances from non-active accounts to the current Active Account
