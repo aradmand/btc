@@ -3,6 +3,8 @@ module RbtcArbitrage
     class CoinbaseClient
       include RbtcArbitrage::Client
 
+      require 'active_support/core_ext/object/try'
+
       # return a symbol as the name
       # of this exchange
       def exchange
@@ -20,7 +22,12 @@ module RbtcArbitrage
           warning << "when you trade live."
           logger.warn warning
         end
-        @balance ||= [max_float, max_float]
+        @balance ||= begin
+          btc_balance = interface.send("balance".to_sym).to_d.to_s.to_f
+          [btc_balance, max_float]
+        rescue Exception => e
+          [0, max_float]
+        end
       end
 
       # Configures the client's API keys.
@@ -42,8 +49,21 @@ module RbtcArbitrage
 
       # Transfers BTC to the address of a different
       # exchange.
-      def transfer client
-        interface.send_money client.address, @options[:volume]
+      def transfer(client, override_values = nil)
+        volume = override_values.try(:[], :volume) || @options[:volume]
+        volume = volume.round(8)
+        interface.send_money client.address, volume
+      end
+
+      def account(account_name)
+        accounts_response = interface.send("accounts".to_sym)
+        desired_account = accounts_response['accounts'].map do |account|
+          if account['name'] == account_name
+            account
+          end
+        end
+
+        desired_account.compact.try(:first)
       end
 
       def interface
