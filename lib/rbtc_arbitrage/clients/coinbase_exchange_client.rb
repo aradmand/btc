@@ -142,7 +142,7 @@ module RbtcArbitrage
       private
 
       def exchange_api_url
-        'https://api.exchange.coinbase.com'
+        'https://api.gdax.com'
       end
 
       # transfer_type = 'deposit' or 'withdraw'
@@ -172,7 +172,7 @@ module RbtcArbitrage
         begin
           curl = Curl::Easy.new
           headers = {}
-          headers['host'] = 'api.exchange.coinbase.com'
+          headers['host'] = 'api.gdax.com'
           headers['method'] = 'POST'
           headers['path'] = path_header
           headers['scheme'] = 'https'
@@ -251,7 +251,7 @@ module RbtcArbitrage
         begin
           curl = Curl::Easy.new
           headers = {}
-          headers['host'] = 'api.exchange.coinbase.com'
+          headers['host'] = 'api.gdax.com'
           headers['method'] = 'POST'
           headers['path'] = path_header
           headers['scheme'] = 'https'
@@ -320,7 +320,7 @@ module RbtcArbitrage
 
         begin
           curl = Curl::Easy.new(api_url) do |http|
-            http.headers['host'] = 'api.exchange.coinbase.com'
+            http.headers['host'] = 'api.gdax.com'
             http.headers['method'] = 'GET'
             http.headers['path'] = path_header
             http.headers['scheme'] = 'https'
@@ -380,7 +380,7 @@ module RbtcArbitrage
 
         begin
           curl = Curl::Easy.new(api_url) do |http|
-            http.headers['host'] = 'api.exchange.coinbase.com'
+            http.headers['host'] = 'api.gdax.com'
             http.headers['method'] = 'GET'
             http.headers['path'] = path_header
             http.headers['scheme'] = 'https'
@@ -469,7 +469,7 @@ module RbtcArbitrage
         path_header = "/products/#{product_id}/book?level=2"
 
         curl = Curl::Easy.new(api_url) do |http|
-          http.headers['host'] = 'api.exchange.coinbase.com'
+          http.headers['host'] = 'api.gdax.com'
           http.headers['method'] = 'GET'
           http.headers['path'] = path_header
           http.headers['scheme'] = 'https'
@@ -496,7 +496,7 @@ module RbtcArbitrage
         path_header = '/products'
 
         curl = Curl::Easy.new(api_url) do |http|
-          http.headers['host'] = 'api.exchange.coinbase.com'
+          http.headers['host'] = 'api.gdax.com'
           http.headers['method'] = 'GET'
           http.headers['path'] = path_header
           http.headers['scheme'] = 'https'
@@ -516,7 +516,7 @@ module RbtcArbitrage
           if product['id'] == 'BTC-USD'
             product
           end
-        end.first
+        end.compact.first
       end
     end
   end

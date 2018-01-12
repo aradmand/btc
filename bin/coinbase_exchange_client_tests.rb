@@ -5,12 +5,11 @@ require 'curb'
 require 'active_support'
 require 'json'
 
-
 # Instantiate Coinbase Exchange Client
 coinbase_exchange_client = RbtcArbitrage::Clients::CoinbaseExchangeClient.new
 
 # Instatiate Coinbase Client (note, different from CoinbaseExchangeClient)
-coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
+#coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
 
 
 ####################
@@ -24,14 +23,14 @@ coinbase_exchange_client.validate_env
 # Price
 ####################
 
-coinbase_buy_price = coinbase_client.price(:buy)
-coinbase_sell_price = coinbase_client.price(:sell)
+#coinbase_buy_price = coinbase_client.price(:buy)
+#coinbase_sell_price = coinbase_client.price(:sell)
 
-puts 'coinbase_buy_price'
-puts coinbase_buy_price
+# puts 'coinbase_buy_price'
+# puts coinbase_buy_price
 
-puts 'coinbase_sell_price'
-puts coinbase_sell_price
+# puts 'coinbase_sell_price'
+# puts coinbase_sell_price
 
 coinbase_exchange_buy_price = coinbase_exchange_client.price(:buy)
 coinbase_exchange_sell_price = coinbase_exchange_client.price(:sell)
@@ -70,6 +69,8 @@ balance_result.count == 2
 ####################
 # Address
 ####################
+
+binding.pry
 
 coinbase_exchange_address = coinbase_exchange_client.address
 puts 'Address for Coinbase (Not Coinbase Exchange)'

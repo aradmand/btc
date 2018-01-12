@@ -75,6 +75,9 @@ end
 def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
   error_message = ''
   begin
+
+    binding.pry
+
     percent = circle_sell_client.try(:min_profit_percent) || circle_buy_client.try(:min_profit_percent) || MIN_PERCENT_PROFIT
     sleep(5.0)
     puts
@@ -208,19 +211,19 @@ active_circle_account = nil
 
 while enabled == true
   # Read in circle_accounts.json to get first ACTIVE account
-  puts "Finding Active Circle Account ..."
-  active_circle_account = CircleAccount::CircleAccount.find_active_account(active_circle_account)
-  puts "Using Circle Account [#{active_circle_account.try(:email)}]"
+  # puts "Finding Active Circle Account ..."
+  # active_circle_account = CircleAccount::CircleAccount.find_active_account(active_circle_account)
+  # puts "Using Circle Account [#{active_circle_account.try(:email)}]"
 
   # Transfer outstanding BTC balances from non-active accounts to the current Active Account
   # puts "Consolidating BTC balances to active account if necessary ..."
   # CircleAccount::CircleAccount.consolidate_btc_balances_to_account(active_circle_account)
 
-  if active_circle_account.blank?
-    puts "No active Circle Account set! Please fix this error before continuing!"
-    sleep(15)
-    next
-  end
+  # if active_circle_account.blank?
+  #   puts "No active Circle Account set! Please fix this error before continuing!"
+  #   sleep(15)
+  #   next
+  # end
 
   set_trading_parameters
   # if profit > 0
