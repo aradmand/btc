@@ -34,8 +34,6 @@ puts bitstamp_sell_price
 # Orders (list open orders)
 ####################
 
-binding.pry
-
 open_orders = bitstamp_client.open_orders
 puts "#{open_orders.size} Open Orders:"
 puts open_orders

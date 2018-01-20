@@ -109,13 +109,23 @@ module RbtcArbitrage
         data = data.map { |k,v| "#{k}=#{v}"}.join('&')
       end
 
+      def open_orders
+        auth_params = signature
+        parsed_json = nil
+
+        url = URI.parse("#{exchange_api_url}/open_orders/btcusd/")
+        http = Net::HTTP.new(url.host, url.port)
+        http.use_ssl = true
+
+        headers = {
+          'Content-Type' => 'application/x-www-form-urlencoded'
+        }
+        resp = http.post(url.path, auth_params, headers)
+        parsed_json = JSON.parse(resp.body)
+      end
+
       def account_balance_command
         auth_params = signature
-
-        api_url = "#{exchange_api_url}/balance/btcusd/?#{auth_params}"
-
-        path_header = "/balance/btcusd"
-
         parsed_json = nil
 
         url = URI.parse("#{exchange_api_url}/balance/btcusd/")
