@@ -6,7 +6,7 @@ require 'active_support'
 require 'json'
 
 # Instantiate Coinbase Exchange Client
-coinbase_exchange_client = RbtcArbitrage::Clients::CoinbaseExchangeClient.new
+coinbase_exchange_client = RbtcArbitrage::Clients::CoinbaseExchangeClient.new({volume: 0.001})
 
 # Instatiate Coinbase Client (note, different from CoinbaseExchangeClient)
 #coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
@@ -87,9 +87,15 @@ puts coinbase_exchange_address
 # Transfer btc
 ####################
 
-circle_client = RbtcArbitrage::Clients::CircleClient.new
+# kraken_client = RbtcArbitrage::Clients::KrakenClient.new
+# kraken_client.address
 
-coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
+# coinbase_exchange_client.transfer(kraken_client)
+
+
+#circle_client = RbtcArbitrage::Clients::CircleClient.new
+
+#coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new
 
 
 #coinbase_client.transfer(circle_client, {volume: 0.02})

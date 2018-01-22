@@ -94,27 +94,13 @@ module RbtcArbitrage
         end
       end
 
-      # Transfers BTC to the address of a different
-      # exchange.
       def transfer(client, override_values = nil)
-        # With CoinbaseExchange, this is a 2-step process:
-        # 1.) Transfer BTC from CoinbaseExchange BTC account to
-        # Bitcoin.com's BTC Wallet
-        #
-        # 2.) Transfer BTC from the BTC Wallet account to the specified
-        # client address.
-
-        # First, transfer BTC from CoinbaseExchange BTC acct to Bitcoin Wallet
         volume = override_values.try(:[], :volume) || @options[:volume]
         volume = volume.round(8)
-        coinbase_client = RbtcArbitrage::Clients::CoinbaseClient.new(self.options.merge({volume: volume}))
-        coinbase_account = coinbase_client.account('My Wallet')
-
-        transfer_response = transfer_funds_command('withdraw', volume, coinbase_account['id'])
-
-        # Second, transfer BTC from Coinbase BTC Wallet to the desired client
-        coinbase_transfer_response = coinbase_client.transfer(client, {volume: volume})
+        crypto_address = client.address
+        transfer_response = withdraw_crypto_command(volume, crypto_address)
       end
+
 
       # If there is an API method to fetch your
       # BTC address, implement this, otherwise
@@ -141,8 +127,85 @@ module RbtcArbitrage
 
       private
 
+      attr_reader :bitcoin_address
+
       def exchange_api_url
         'https://api.gdax.com'
+      end
+
+      def withdraw_crypto_command(amount, crypto_address)
+        request_body = {
+          "amount" => amount.round(8),
+          "currency" => "BTC",
+          "crypto_address" => crypto_address
+        }
+        auth_headers = signature('/withdrawals/crypto', request_body, nil, 'POST')
+
+        api_url = "#{exchange_api_url}/withdrawals/crypto"
+        path_header = "/withdrawals/crypto"
+
+        json_data = nil
+        parsed_json = nil
+        curl = nil
+        connection_state = CONNECTION_STATE_INITIAL
+
+        begin
+          curl = Curl::Easy.new
+          headers = {}
+          headers['host'] = 'api.gdax.com'
+          headers['method'] = 'POST'
+          headers['path'] = path_header
+          headers['scheme'] = 'https'
+          headers['version'] = 'HTTP/1.1'
+          headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+          headers['accept-encoding'] = 'gzip,deflate,sdch'
+          headers['accept-language'] = 'en-US,en;q=0.8'
+          headers['content-type'] = 'application/json'
+          headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+          headers["CB-ACCESS-PASSPHRASE"] = auth_headers[:cb_access_passphrase]
+          headers["CB-ACCESS-TIMESTAMP"] = auth_headers[:cb_access_timestamp]
+          headers["CB-ACCESS-KEY"] = auth_headers[:cb_access_key]
+          headers["CB-ACCESS-SIGN"] = auth_headers[:cb_access_sign]
+
+          curl.url = api_url
+          curl.headers = headers
+          curl.verbose = true
+
+          curl.http_post(request_body.to_json)
+          connection_state = CONNECTION_STATE_CURL_PERFORMED
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          connection_state = CONNECTION_STATE_CURL_DECOMPRESSED
+          parsed_json = JSON.parse(json_data)
+          connection_state = CONNECTION_STATE_CURL_PARSED
+          id = parsed_json['id']
+          sent_amount = parsed_json['amount']
+
+          if id.blank? || sent_amount.blank?
+            puts 'Error within withdraw_crypto_command. Response:'
+            puts json_data
+          end
+
+          {'id' => id, 'sent_amount' => sent_amount}
+        rescue Curl::Err::SSLConnectError, Curl::Err::ConnectionFailedError => e
+          puts "ConnectionFailed Exception occured in 'withdraw_crypto_command'"
+          # If possible, this would be a good time to retry
+          should_retry = false
+          binding.pry
+          retry if should_retry
+          puts "Connection State:"
+          puts connection_state
+          binding.pry
+          puts "curl.body_str:"
+          puts curl.body_str
+          puts "Exception:"
+          puts e.message
+        rescue => e
+          puts "Error while reading response in withdraw_crypto_command:"
+          puts curl.body_str
+          puts "Original request_body:"
+          puts request_body
+          return nil
+        end
       end
 
       # transfer_type = 'deposit' or 'withdraw'
