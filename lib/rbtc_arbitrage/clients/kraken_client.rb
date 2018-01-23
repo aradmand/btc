@@ -39,16 +39,17 @@ module RbtcArbitrage
       end
 
       def trade action
-        # price(action) unless @price #memoize
-        # multiple = {
-        #   buy: 1,
-        #   sell: -1,
-        # }[action]
-        # bitstamp_options = {
-        #   price: (@price + 0.001 * multiple),
-        #   amount: @options[:volume],
-        # }
-        # Bitstamp.orders.send(action, bitstamp_options)
+        price = price(action)
+        multiple = {
+          buy: 1,
+          sell: -1,
+        }[action]
+
+        adjusted_price = price + 0.01 * multiple
+        adjusted_price = adjusted_price.round(2)
+
+        side = action == :buy ? 'buy' : 'sell'
+        result = add_order(side, @options[:volume], adjusted_price)
       end
 
       def transfer other_client
@@ -77,6 +78,18 @@ module RbtcArbitrage
           bids: result["result"]["XXBTZUSD"]["bids"],
           asks: result["result"]["XXBTZUSD"]["asks"]
         }
+      end
+
+      def add_order(side, volume, price)
+        opts = {
+          pair: 'XBTUSD',
+          type: side,
+          ordertype: 'limit',
+          volume: volume,
+          price: price
+        }
+
+        result = post_private 'AddOrder', opts
       end
 
       def open_orders

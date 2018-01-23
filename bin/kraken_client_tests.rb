@@ -6,7 +6,7 @@ require 'active_support'
 require 'json'
 
 # Instantiate Kraken Client
-kraken_client = RbtcArbitrage::Clients::KrakenClient.new
+kraken_client = RbtcArbitrage::Clients::KrakenClient.new({volume: 0.002})
 
 
 ####################
@@ -86,7 +86,7 @@ puts kraken_address
 # and then sell :volume BTC
 ##############################
 
-# puts "Buying #{coinbase_exchange_client.options[:volume]} BTC"
+# puts "Buying #{kraken_client.options[:volume]} BTC"
 # buy = coinbase_exchange_client.trade(:buy)
 # if buy == 0
 #   puts "Sucessfully bought #{coinbase_exchange_client.options[:volume]} BTC"
@@ -95,10 +95,10 @@ puts kraken_address
 #   puts buy
 # end
 
-# puts "Selling #{coinbase_exchange_client.options[:volume]} BTC"
-# sell = coinbase_exchange_client.trade(:sell)
+# puts "Selling #{kraken_client.options[:volume]} BTC"
+# sell = kraken_client.trade(:sell)
 # if sell == 0
-#   puts "Sucessfully sold #{coinbase_exchange_client.options[:volume]} BTC"
+#   puts "Sucessfully sold #{kraken_client.options[:volume]} BTC"
 # else
 #   puts "Error selling BTC"
 #   puts sell
