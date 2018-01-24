@@ -24,6 +24,10 @@ module RbtcArbitrage
         :kraken
       end
 
+      def exchange_fee
+        0.00
+      end
+
       def price action
         bids_asks_hash = order_book_command
 

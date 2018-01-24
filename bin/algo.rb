@@ -1,39 +1,11 @@
 # Iota Algo
 #
-# This Algorithm is optimized for arbitrage trading between the circle and
-# coinbase_exchange exchanges.
+# This Algorithm is optimized for arbitrage trading between
+# coinbase_exchange and Kraken exchanges.
 #
-# Features of this strategey include:
-# => This is capable of trading multiple circle accounts
-# => Since Circle limits our withdraws to $5,000 / week, this strategy is designed
-# => to use multiple circle accounts to stay under this limit. Of Note:
+# Basic arbitrage strategy, always choosing coinbase_exchange as the buyer
+# and leaving Kraken exchange as the seller.
 #
-# => circle_accounts.json
-# => This file has been added as a way to dynamically configure Circle Accounts
-# => Circle env variables are no longer needed to configure circle_client, as all
-# => values come from this file
-#
-# => In particular, this strategy allows for the setting of a MIN_PROFIT_PERCENT on
-# => a per-account basis.
-#
-# => circle_account.rb
-# => This file has been added to be the in-memory representation of a circle_account.
-# => It will house all necessary env variables needed to make api requests for the
-# => given account.
-
-# THE ALGORITHM:
-  # The algo will read in the circle_accounts.json file to find the first account
-  # eligible to be traded and set it to active.
-
-  # All other accounts will be marked as either INACTIVE or MAXED_OUT
-
-  # The active account will be traded until it becomes MAXED_OUT
-
-  # When it is MAXED_OUT, the algo will repeat the process and scan through
-  # theh list of eligible accounts in circle_accounts.json to choose the next active
-  # account to trade.
-
-
 #  TRADING NOTES:
 # => Before trading, the algo will check to see if any open orders
 #  exist on the coinbase_exchange exchange.  If so, the algo will pause and not continue
@@ -58,14 +30,14 @@ require 'circle_account'
 enabled = true
 profit = 0
 
-MIN_PERCENT_PROFIT = 0.55
+MIN_PERCENT_PROFIT = 0.5
 MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 
 
 def set_trading_parameters
   @buyer = ENV['BTC_BUYER'].try(:to_sym) || :coinbase_exchange
-  @seller = ENV['BTC_SELLER'].try(:to_sym) || :circle
-  @volume = 0.4
+  @seller = ENV['BTC_SELLER'].try(:to_sym) || :kraken
+  @volume = 0.002
 
   args_hash = Hash[*ARGV]
   @live = args_hash['--live'] == 'true'
@@ -75,11 +47,7 @@ end
 def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
   error_message = ''
   begin
-
-    binding.pry
-
-    percent = circle_sell_client.try(:min_profit_percent) || circle_buy_client.try(:min_profit_percent) || MIN_PERCENT_PROFIT
-    sleep(5.0)
+    percent = MIN_PERCENT_PROFIT
     puts
     puts
     puts
@@ -89,21 +57,13 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
     puts "#=================="
     puts "[Timestamp - #{start_time}]"
 
-    set_circle_account_hash = if circle_buy_client
-      {buyer_circle_account: circle_buy_client}
-    elsif circle_sell_client
-      {seller_circle_account: circle_sell_client}
-    else
-      {}
-    end
-
     options = {
       buyer: buy_exchange,
       seller: sell_exchange,
       volume: @volume,
       cutoff: percent,
       verbose: true
-    }.merge(set_circle_account_hash)
+    }#.merge(set_circle_account_hash)
 
     ####### This turns on live trading #####
     if @live == true
@@ -210,62 +170,22 @@ exchange_2 = @seller
 active_circle_account = nil
 
 while enabled == true
-  # Read in circle_accounts.json to get first ACTIVE account
-  # puts "Finding Active Circle Account ..."
-  # active_circle_account = CircleAccount::CircleAccount.find_active_account(active_circle_account)
-  # puts "Using Circle Account [#{active_circle_account.try(:email)}]"
-
-  # Transfer outstanding BTC balances from non-active accounts to the current Active Account
-  # puts "Consolidating BTC balances to active account if necessary ..."
-  # CircleAccount::CircleAccount.consolidate_btc_balances_to_account(active_circle_account)
-
-  # if active_circle_account.blank?
-  #   puts "No active Circle Account set! Please fix this error before continuing!"
-  #   sleep(15)
-  #   next
-  # end
+  puts "Pausing for 10 seconds ..."
+  sleep(10.0)
 
   set_trading_parameters
-  # if profit > 0
-  #   # Do Nothing
-  # else
-  #   if exchange_1 == :circle
-  #     exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
-  #   else
-  #     exchange_1, exchange_2 = flip_exchanges(exchange_1, exchange_2)
-  #   end
-  # end
 
-  if exchange_1 == :circle
-    profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2, active_circle_account, nil)
-  else
-    profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2, nil, active_circle_account)
-  end
+  profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2, nil, nil)
 
   if @step && profit_percent >= MIN_PERCENT_PROFIT
     binding.pry
   end
 
-  while profit_percent >= active_circle_account.try(:min_profit_percent) &&
+  while profit_percent >= MIN_PERCENT_PROFIT &&
     no_open_orders?(rbtc_arbitrage.buy_client, rbtc_arbitrage.sell_client) == false
 
     open_order_sleep = 10.0
     puts "*** Open orders detected on exchanges! Re-checking in #{open_order_sleep} seconds. ***"
     sleep(open_order_sleep)
   end
-
-  if profit_percent >= active_circle_account.try(:min_profit_percent) && !exception_due_to_insufficient_funds?(error_message)
-    # Sleep after profitable trade to avoid getting flagged for
-    # frequent trades on Circle
-    sleep_time = 10
-    puts
-    puts "******"
-    puts "Waiting #{(sleep_time.to_f / 60)} mins (#{sleep_time} seconds) after profitable trade to resume trading ..."
-    puts "******"
-    puts
-
-    sleep(sleep_time)
-  end
-
-  #enabled = false
 end
