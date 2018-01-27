@@ -1,4 +1,4 @@
-# Iota Algo
+# Kappa Algo
 #
 # This Algorithm is optimized for arbitrage trading between
 # coinbase_exchange and Kraken exchanges.
