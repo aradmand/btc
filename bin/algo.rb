@@ -50,6 +50,15 @@ def set_trading_parameters
     verbose: true
   }
 
+  ####### This turns on live trading #####
+  if @live == true
+    options.merge!({live: true})
+  end
+  if options.has_key?(:live)
+    puts '*** LIVE TRADING MODE IS SET TO TRUE! ***'
+  end
+  ########################################
+
   [RbtcArbitrage::Trader.new(options), options]
 end
 
@@ -87,14 +96,9 @@ def trade(buy_exchange, sell_exchange, rbtc_arbitrage, options)
     puts "#=================="
     puts "[Timestamp - #{start_time}]"
 
-    ####### This turns on live trading #####
-    if @live == true
-      options.merge!({live: true})
-    end
     if options.has_key?(:live)
       puts '*** LIVE TRADING MODE IS SET TO TRUE! ***'
     end
-    ########################################
 
     command = "rbtc --seller #{options[:seller]} --buyer #{options[:buyer]} --volume #{options[:volume]} --cutoff #{options[:cutoff]}"
 
