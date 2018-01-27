@@ -24,13 +24,12 @@ require 'pry'
 
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), '..', 'lib')
 require 'rbtc_arbitrage'
-require 'circle_account'
 
 @accumulated_profit_in_cents = 0
 enabled = true
 profit = 0
 
-MIN_PERCENT_PROFIT = 0.5
+MIN_PERCENT_PROFIT = 0.25
 MAX_TOP_OF_BOOK_QUANTITY_TO_TRADE = 0.5
 
 
@@ -42,9 +41,40 @@ def set_trading_parameters
   args_hash = Hash[*ARGV]
   @live = args_hash['--live'] == 'true'
   @step = args_hash['--step'] == 'true'
+
+  options = {
+    buyer: @buyer,
+    seller: @seller,
+    volume: @volume,
+    cutoff: MIN_PERCENT_PROFIT,
+    verbose: true
+  }
+
+  [RbtcArbitrage::Trader.new(options), options]
 end
 
-def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
+def warm_up_exchanges(rbtc_trader)
+  sell_client = rbtc_trader.sell_client
+  buy_client = rbtc_trader.buy_client
+
+  sell_client.validate_env
+  buy_price = sell_client.price(:buy)
+  sell_price = sell_client.price(:sell)
+  open_orders = sell_client.open_orders
+  balance_result = sell_client.balance
+  balance_result.count == 2
+  address = sell_client.address
+
+  buy_client.validate_env
+  buy_price = buy_client.price(:buy)
+  sell_price = buy_client.price(:sell)
+  open_orders = buy_client.open_orders
+  balance_result = buy_client.balance
+  balance_result.count == 2
+  address = buy_client.address
+end
+
+def trade(buy_exchange, sell_exchange, rbtc_arbitrage, options)
   error_message = ''
   begin
     percent = MIN_PERCENT_PROFIT
@@ -57,14 +87,6 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
     puts "#=================="
     puts "[Timestamp - #{start_time}]"
 
-    options = {
-      buyer: buy_exchange,
-      seller: sell_exchange,
-      volume: @volume,
-      cutoff: percent,
-      verbose: true
-    }#.merge(set_circle_account_hash)
-
     ####### This turns on live trading #####
     if @live == true
       options.merge!({live: true})
@@ -73,8 +95,6 @@ def trade(buy_exchange, sell_exchange, circle_buy_client, circle_sell_client)
       puts '*** LIVE TRADING MODE IS SET TO TRUE! ***'
     end
     ########################################
-
-    rbtc_arbitrage = RbtcArbitrage::Trader.new(options)
 
     command = "rbtc --seller #{options[:seller]} --buyer #{options[:buyer]} --volume #{options[:volume]} --cutoff #{options[:cutoff]}"
 
@@ -164,18 +184,16 @@ def exception_due_to_insufficient_funds?(message)
   message == "Not enough funds. Exiting."
 end
 
-set_trading_parameters
+rbtc_arbitrage, options = set_trading_parameters
 exchange_1 = @buyer
 exchange_2 = @seller
-active_circle_account = nil
+warm_up_exchanges(rbtc_arbitrage)
 
 while enabled == true
   puts "Pausing for 10 seconds ..."
   sleep(10.0)
 
-  set_trading_parameters
-
-  profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2, nil, nil)
+  profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2, rbtc_arbitrage, options)
 
   if @step && profit_percent >= MIN_PERCENT_PROFIT
     binding.pry

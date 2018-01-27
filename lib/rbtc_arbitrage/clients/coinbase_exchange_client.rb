@@ -127,7 +127,7 @@ module RbtcArbitrage
 
       private
 
-      attr_reader :bitcoin_address
+      attr_reader :bitcoin_address, :bitcoin_product_command_result
 
       def exchange_api_url
         'https://api.gdax.com'
@@ -555,6 +555,8 @@ module RbtcArbitrage
       end
 
       def products_command
+        return @bitcoin_product_command_result if @bitcoin_product_command_result
+
         api_url = "#{exchange_api_url}/products"
         path_header = '/products'
 
@@ -580,6 +582,7 @@ module RbtcArbitrage
             product
           end
         end.compact.first
+        @bitcoin_product_command_result = btc_usd_product
       end
     end
   end
