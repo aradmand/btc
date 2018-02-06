@@ -59,7 +59,13 @@ def set_trading_parameters
   end
   ########################################
 
-  [RbtcArbitrage::Trader.new(options), options]
+  @rbtc_a = RbtcArbitrage::Trader.new(options)
+  options_b = options
+  options_b[:buyer] = @seller
+  options_b[:seller] = @buyer
+  @rbtc_b = RbtcArbitrage::Trader.new(options_b)
+
+  [@rbtc_a, options, @rbtc_b, options_b]
 end
 
 def warm_up_exchanges(rbtc_trader)
@@ -188,16 +194,22 @@ def exception_due_to_insufficient_funds?(message)
   message == "Not enough funds. Exiting."
 end
 
-rbtc_arbitrage, options = set_trading_parameters
+rbtc_arbitrage, options, rbtc_arbitrage_b, options_b = set_trading_parameters
 exchange_1 = @buyer
 exchange_2 = @seller
 warm_up_exchanges(rbtc_arbitrage)
+warm_up_exchanges(rbtc_arbitrage_b)
 
 while enabled == true
   puts "Pausing for 10 seconds ..."
-  sleep(10.0)
+  #sleep(10.0)
 
-  profit, profit_percent, rbtc_arbitrage, error_message = trade(exchange_1, exchange_2, rbtc_arbitrage, options)
+  binding.pry
+
+  profit, profit_percent, rbtc_arbitrage, error_message = trade(rbtc_arbitrage.buy_client.exchange,
+      rbtc_arbitrage.sell_client.exchange,
+      rbtc_arbitrage,
+      options)
 
   if @step && profit_percent >= MIN_PERCENT_PROFIT
     binding.pry
@@ -209,5 +221,15 @@ while enabled == true
     open_order_sleep = 10.0
     puts "*** Open orders detected on exchanges! Re-checking in #{open_order_sleep} seconds. ***"
     sleep(open_order_sleep)
+  end
+
+  binding.pry
+
+  if profit < 0
+    rbtc_arbitrage = if rbtc_arbitrage == @rbtc_a
+      @rbtc_b
+    else
+      @rbtc_a
+    end
   end
 end

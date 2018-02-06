@@ -25,7 +25,7 @@ module RbtcArbitrage
       end
 
       def exchange_fee
-        0.00
+        0.0025
       end
 
       def price action

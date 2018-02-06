@@ -531,22 +531,33 @@ module RbtcArbitrage
 
         path_header = "/products/#{product_id}/book?level=2"
 
-        curl = Curl::Easy.new(api_url) do |http|
-          http.headers['host'] = 'api.gdax.com'
-          http.headers['method'] = 'GET'
-          http.headers['path'] = path_header
-          http.headers['scheme'] = 'https'
-          http.headers['version'] = 'HTTP/1.1'
-          http.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
-          http.headers['accept-encoding'] = 'gzip,deflate,sdch'
-          http.headers['accept-language'] = 'en-US,en;q=0.8'
-          http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+        parsed_json = nil
+        response = nil
+        json_data = nil
+
+        begin
+          curl = Curl::Easy.new(api_url) do |http|
+            http.headers['host'] = 'api.gdax.com'
+            http.headers['method'] = 'GET'
+            http.headers['path'] = path_header
+            http.headers['scheme'] = 'https'
+            http.headers['version'] = 'HTTP/1.1'
+            http.headers['accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+            http.headers['accept-encoding'] = 'gzip,deflate,sdch'
+            http.headers['accept-language'] = 'en-US,en;q=0.8'
+            http.headers['user-agent'] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"
+          end
+
+          response = curl.perform
+
+          json_data = ActiveSupport::Gzip.decompress(curl.body_str)
+          parsed_json = JSON.parse(json_data)
+        rescue => e
+          puts "Error while reading response:"
+          puts curl.body_str
+          binding.pry
+          return nil
         end
-
-        response = curl.perform
-
-        json_data = ActiveSupport::Gzip.decompress(curl.body_str)
-        parsed_json = JSON.parse(json_data)
 
         {
           bids: parsed_json['bids'],
